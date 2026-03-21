@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ru">
+<script data-goatcounter="https://gghjik41.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>ПСО Панель Опросников</title>
+	<link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        /* ОСНОВНОЙ ВИЗУАЛ */
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; padding-top: env(safe-area-inset-top); background-color: #eceff1; min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+        
+        /* ШАПКА И НАВИГАЦИЯ */
+        .header-nav { background-color: #37474f; padding: 4px 8px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 1000; position: fixed; top: 0; left: 0; right: 0; height: 40px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+        .header-nav::-webkit-scrollbar { display: none; }
+        
+        /* КНОПКИ УПРАВЛЕНИЯ */
+        .clear-btn { background-color: #b71c1c; color: white; border: none; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .pin-btn { background-color: #546e7a; color: white; border: none; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .pin-btn.active { background-color: #0288d1; }
+        .nav-btn { background-color: #455a64; color: #cfd8dc; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; text-transform: uppercase; white-space: nowrap; }
+        .nav-btn.active { background-color: #00c853; color: #fff; }
+        
+        /* КОНТЕЙНЕРЫ */
+        .main-wrapper { display: flex; width: 100%; padding: 5px; padding-right: 20px; margin-top: 48px; gap: 10px; box-sizing: border-box; align-items: flex-start; }
+        .form-side { flex: 0 0 55%; background: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); padding: 12px; box-sizing: border-box; position: relative; }
+        .result-side { flex: 0 0 45%; display: flex; flex-direction: column; gap: 8px; position: relative; }
+        
+        /* ЛИПКАЯ ЗАЯВКА */
+        .sticky-header { background: white; padding: 10px 12px; border-bottom: 2px solid #eee; position: fixed; top: 55px; left: 5px; width: calc(55% - 14px); z-index: 999; box-sizing: border-box; border-radius: 4px 4px 0 0; box-shadow: 0 4px 6px -2px rgba(0,0,0,0.1); }
+        .sticky-header.unpinned { position: static !important; width: 100% !important; padding: 0 0 8px 0; margin-bottom: 10px; box-shadow: none; }
+        
+        /* ЭЛЕМЕНТЫ ВВОДА */
+        #z_text { width: 100%; min-height: 75px; padding: 6px; box-sizing: border-box; border: 1px solid #cfd8dc; border-radius: 4px; font-family: inherit; font-size: 14px; }
+        #z_fixed { display: none; background: #f1f8e9; padding: 8px; border-radius: 6px; border: 1px solid #c8e6c9; line-height: 1.4em; font-size: 13px; color: #1b5e20; white-space: pre-wrap; }
+        .btn-ok { margin-top: 6px; background: #4caf50; color: white; border: none; border-radius: 4px; padding: 10px; width: 100%; cursor: pointer; font-weight: bold; }
+        #survey-frame { width: 100%; height: auto; min-height: 300px; border: none; display: block; overflow: hidden !important; margin-top: 140px; }
+        
+        /* ВЫДАЧА РЕЗУЛЬТАТА */
+        .btn-copy { background-color: #1976d2; color: white; border: none; padding: 12px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; position: fixed; top: 53px; right: 10px; width: calc(45% - 10px); z-index: 1001; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; }
+        
+        #output { 
+            width: calc(45% - 10px); 
+            position: fixed;
+            top: 105px; 
+            right: 10px;
+            bottom: 10px; 
+            height: auto; 
+            max-height: none; 
+            overflow-y: auto; 
+            padding: 10px 12px; 
+            border-radius: 4px; 
+            border: 1px solid #b0bec5; 
+            font-family: 'Segoe UI', sans-serif; 
+            font-size: 13px; 
+            background: white; 
+            white-space: pre-wrap; 
+            box-sizing: border-box; 
+            color: #263238; 
+            line-height: 1.3; 
+            margin-top: 0;
+            scrollbar-width: none; 
+            -ms-overflow-style: none; 
+        }
+        #output::-webkit-scrollbar { display: none; }
+
+        .res-row { margin-bottom: 2px; display: block; transition: background-color 0.3s ease; border-left: 3px solid transparent; }
+        .res-label { font-weight: 800; color: #1565c0; text-transform: uppercase; font-size: 11px; margin-right: 4px; }
+        .res-value { font-family: 'Consolas', 'Courier New', monospace; color: #000; font-size: 13px; }
+        
+        .res-row.active-focus {
+            background-color: #fff9c4;
+            border-left: 3px solid #00c853;
+            padding-left: 4px;
+        }
+        
+        @media (max-width: 900px) { 
+            .main-wrapper { flex-direction: column; padding-right: 5px; margin-top: 50px; } 
+            .form-side, .result-side { flex: 0 0 100%; width: 100%; position: static; } 
+            .sticky-header { position: static !important; width: 100% !important; } 
+            #survey-frame { margin-top: 0 !important; } 
+            .btn-copy { position: static; width: 100%; margin-bottom: 8px; } 
+            #output { position: static; width: 100%; margin-top: 0; transform: none !important; max-height: none; } 
+        }
+    </style>
+</head>
+<body>
+
+<div class="header-nav" id="menu">
+    <div style="display: flex; gap: 5px; justify-self: start;">
+        <button class="clear-btn" onclick="clearAllData()" title="Полная очистка">✕</button>
+        <button class="pin-btn active" id="master-pin-btn" onclick="togglePin()" title="Закрепить/открепить шапку заявки">📌</button>
+    </div>
+    
+    <div style="display: flex; gap: 5px; justify-content: center;">
+        <button class="nav-btn active" onclick="openSurvey('short.html', this)">Короткий</button>
+        <button class="nav-btn" onclick="openSurvey('elderly.html', this)">Старики</button>
+        <button class="nav-btn" onclick="openSurvey('teens.html', this)">Подростки</button>
+        <button class="nav-btn" onclick="openSurvey('forest.html', this)">Лес</button>
+        <button class="nav-btn" onclick="openSurvey('adults.html', this)">Взрослые</button>
+    </div>
+    
+    <div style="display: flex; gap: 5px; justify-self: end; padding-right: 10px;">
+        <button class="nav-btn" onclick="exportToJson()" title="Выгрузить JSON">💾</button>
+        <button class="nav-btn" onclick="document.getElementById('import-file').click()" title="Загрузить JSON">📂</button>
+        <input type="file" id="import-file" style="display:none" onchange="importFromJson(this)" accept=".json">
+    </div>
+</div>
+
+<div class="main-wrapper">
+    <div class="form-side">
+        <div class="sticky-header" id="master-sticky">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <label style="font-weight: bold; text-decoration: underline; font-size: 13px; color: #37474f;">ЗАЯВКА</label>
+                <button id="z_edit_btn" onclick="editZ()" style="display: none; background: #90a4ae; color: white; border: none; border-radius: 4px; padding: 2px 8px; font-size: 10px; cursor: pointer;">ИЗМЕНИТЬ</button>
+            </div>
+            <textarea id="z_text" placeholder="Вставьте текст заявки..."></textarea>
+            <div id="z_fixed"><div id="z_value"></div></div>
+            <button id="z_confirm_btn" class="btn-ok" onclick="fixZ()">ОК</button>
+        </div>
+        <iframe src="short.html" id="survey-frame" scrolling="no"></iframe>
+    </div>
+    
+    <div class="result-side">
+        <button class="btn-copy" id="copy-btn" onclick="copyText()">
+            <span>Скопировать результат</span>
+            <span id="save-status">Обновлено: --:--:--</span>
+        </button>
+        <div id="output">Результат опроса появится здесь...</div>
+    </div>
+</div>
+
+<script>
+    var ORDER = ['short', 'elderly', 'teens', 'forest', 'adults']; 
+    // globalZData — основной текст заявки
+    var globalZData = localStorage.getItem('pso_z_main') || "";
+    // globalCallsignData — "Позывной / Дата / Время" (используется для системных нужд, например, имени файла)
+    var globalCallsignData = localStorage.getItem('pso_global_callsign_data') || ""; 
+    var globalFields = JSON.parse(localStorage.getItem('pso_global_fields') || "{}"); 
+    
+    var currentSource = localStorage.getItem('last_survey_file') ? localStorage.getItem('last_survey_file').replace('.html', '') : 'short';
+    var scrollTimeout;
+
+    function adjustFrameOffset() {
+        var header = document.getElementById('master-sticky');
+        var frame = document.getElementById('survey-frame');
+        if (header && frame && !header.classList.contains('unpinned') && window.innerWidth > 900) {
+            frame.style.marginTop = (header.offsetHeight + 10) + 'px';
+        } else {
+            if (frame) frame.style.marginTop = '0px';
+        }
+    }
+
+    function togglePin() {
+        var btn = document.getElementById('master-pin-btn');
+        var header = document.getElementById('master-sticky');
+        if (!btn || !header) return;
+        var isActive = btn.classList.toggle('active');
+        header.classList.toggle('unpinned', !isActive);
+        adjustFrameOffset();
+    }
+
+    // ЛОГИКА БЛОКА ЗАЯВКА
+    function fixZ() {
+        var val = document.getElementById('z_text').value; 
+        globalZData = val;
+        localStorage.setItem('pso_z_main', val);
+        
+        if (val.trim() !== "") {
+            renderZ(val);
+        }
+    }
+
+    function renderZ(text) {
+        var valDiv = document.getElementById('z_value');
+        if (!valDiv) return;
+        valDiv.innerHTML = "";
+        var lines = text.split('\n');
+        lines.forEach(function(line) {
+            var span = document.createElement('span');
+            span.innerText = line || ' ';
+            valDiv.appendChild(span);
+        });
+        document.getElementById('z_text').style.display = 'none';
+        document.getElementById('z_confirm_btn').style.display = 'none';
+        document.getElementById('z_fixed').style.display = 'block';
+        document.getElementById('z_edit_btn').style.display = 'block';
+        setTimeout(adjustFrameOffset, 30);
+    }
+
+    function editZ() {
+        var zInput = document.getElementById('z_text');
+        zInput.value = globalZData;
+        zInput.style.display = 'block';
+        document.getElementById('z_confirm_btn').style.display = 'block';
+        document.getElementById('z_fixed').style.display = 'none';
+        document.getElementById('z_edit_btn').style.display = 'none';
+        setTimeout(adjustFrameOffset, 30);
+    }
+
+    function broadcastData(call, fields) {
+        var frame = document.getElementById('survey-frame');
+        if (frame && frame.contentWindow) {
+            frame.contentWindow.postMessage({ type: 'set_global_data', value: call, fields: fields }, '*');
+        }
+    }
+
+    function openSurvey(fileName, btn) {
+        var frame = document.getElementById('survey-frame');
+        if (!frame) return;
+        currentSource = fileName.replace('.html', '');
+        frame.src = fileName;
+        var navBtns = document.querySelectorAll('.nav-btn');
+        navBtns.forEach(function(b) { b.classList.remove('active'); });
+        if (btn) btn.classList.add('active');
+        localStorage.setItem('last_survey_file', fileName);
+        
+        frame.onload = function() {
+            broadcastData(globalCallsignData, globalFields);
+            adjustFrameOffset();
+            updateFinalOutput();
+        };
+    }
+
+    function clearAllData() {
+        if (confirm("Очистить все формы и результат?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    // ИСПРАВЛЕНО: Теперь индекс НЕ добавляет позывной сам, 
+    // он только отображает то, что прислал опросник в payload
+		function updateFinalOutput() {
+		var outDiv = document.getElementById('output');
+		if (!outDiv) return;
+		outDiv.innerHTML = ""; 
+
+		var raw = localStorage.getItem('survey_text_' + currentSource);
+		if (raw) {
+			try {
+				var payload = JSON.parse(raw);
+				if (Array.isArray(payload)) {
+					payload.forEach(function(item, index) {
+						var row = document.createElement('div');
+						row.className = 'res-row';
+						row.id = 'row-' + currentSource + '-' + index;
+						
+						// ПРОВЕРКА: Если это помечено как заголовок (Позывной)
+						if (item.isHeader) {
+							row.innerHTML = '<span class="res-value" style="font-weight:bold; display:block; margin-bottom:15px; font-size:1.1em; border-bottom:1px solid #444; padding-bottom:5px;">' + item.value + '</span>';
+						} 
+						// Если есть лейбл
+						else if (item.label && item.label.trim() !== "") {
+							row.innerHTML = '<span class="res-label">' + item.label + ':</span> <span class="res-value">' + item.value + '</span>';
+						} 
+						// Просто текст без лейбла (не заголовок)
+						else {
+							row.innerHTML = '<span class="res-value">' + item.value + '</span>';
+						}
+						
+						outDiv.appendChild(row);
+					});
+				}
+			} catch(e) { console.error("Ошибка отрисовки", e); }
+		}
+		// Обновляем время на кнопке или в статус-баре
+		var status = document.getElementById('save-status');
+		if (status) {
+			var now = new Date();
+			var timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+			status.innerText = "Обновлено в " + timeStr;
+		}
+	}
+
+    window.addEventListener('message', function(event) {
+        if (event.data.type === 'survey_update') {
+            localStorage.setItem('survey_text_' + event.data.source, JSON.stringify(event.data.payload));
+            if (event.data.source === currentSource) updateFinalOutput();
+        }
+
+        if (event.data.type === 'sync_scroll') {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(function() {
+                var targetId = 'row-' + event.data.source + '-' + event.data.index;
+                var targetRow = document.getElementById(targetId);
+                var outputBox = document.getElementById('output');
+                if (targetRow && outputBox) {
+                    document.querySelectorAll('.res-row').forEach(function(r) { r.classList.remove('active-focus'); });
+                    targetRow.classList.add('active-focus');
+                    var scrollTarget = targetRow.offsetTop - outputBox.offsetTop - (outputBox.clientHeight / 3);
+                    outputBox.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+                }
+            }, 100);
+        }
+
+        if (event.data.type === 'sync_globals') {
+            if (globalCallsignData !== event.data.value) {
+                globalCallsignData = event.data.value;
+                localStorage.setItem('pso_global_callsign_data', globalCallsignData);
+                
+                // Обновляем выдачу, так как payload тоже изменился
+                updateFinalOutput(); 
+            }
+        }
+
+        if (event.data.type === 'sync_field') {
+            if (globalFields[event.data.fieldId] !== event.data.value) {
+                globalFields[event.data.fieldId] = event.data.value;
+                localStorage.setItem('pso_global_fields', JSON.stringify(globalFields));
+                broadcastData(globalCallsignData, globalFields);
+            }
+        }
+
+        if (event.data.type === 'set_height') {
+            var frame = document.getElementById('survey-frame');
+            if (frame && event.data.height) {
+                frame.style.height = event.data.height + 'px';
+                adjustFrameOffset();
+            }
+        }
+    });
+
+    function copyText() {
+        var out = document.getElementById('output');
+        if (!out || out.innerText.indexOf('Результат опроса') === 0) return;
+
+        var finalString = "";
+        var elements = out.childNodes;
+        elements.forEach(function(node) {
+            if (node.nodeType === 1) { 
+                var tempNode = node.cloneNode(true);
+                var labels = tempNode.querySelectorAll('.res-label');
+                labels.forEach(function(l) {
+                    l.style.textTransform = 'none';
+                });
+                finalString += tempNode.innerText.trim() + "\n";
+            }
+        });
+
+        var tempArea = document.createElement('textarea');
+        tempArea.value = finalString.trim();
+        document.body.appendChild(tempArea);
+        tempArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempArea);
+
+        var btn = document.getElementById('copy-btn');
+        if (btn) {
+            var oldContent = btn.innerHTML;
+            btn.innerHTML = "<span>СКОПИРОВАНО!</span>";
+            btn.style.backgroundColor = "#00c853";
+            setTimeout(function() { 
+                btn.innerHTML = oldContent; 
+                btn.style.backgroundColor = "#1976d2"; 
+            }, 1200);
+        }
+    }
+
+    window.onload = function() {
+        var savedZ = localStorage.getItem('pso_z_main') || "";
+        globalZData = savedZ;
+        document.getElementById('z_text').value = savedZ;
+        
+        if (savedZ.trim() === "") {
+            editZ(); 
+        } else {
+            renderZ(savedZ); 
+        }
+
+        var savedCall = localStorage.getItem('pso_global_callsign_data');
+        if (savedCall === null) { 
+            var now = new Date();
+            var dateStr = now.toLocaleDateString('ru-RU');
+            var timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            savedCall = dateStr + " " + timeStr + "\n";
+            localStorage.setItem('pso_global_callsign_data', savedCall);
+        }
+        globalCallsignData = savedCall;
+        
+        var lastFile = localStorage.getItem('last_survey_file') || 'short.html';
+        var buttons = document.querySelectorAll('.nav-btn');
+        var found = false;
+        buttons.forEach(function(btn) {
+            if (btn.getAttribute('onclick') && btn.getAttribute('onclick').indexOf(lastFile) !== -1) {
+                openSurvey(lastFile, btn);
+                found = true;
+            }
+        });
+        if(!found && buttons.length > 0) openSurvey('short.html', buttons);
+
+        updateFinalOutput();
+    };
+
+    window.addEventListener('resize', adjustFrameOffset);
+    
+    function exportToJson() {
+        try {
+            var backup = {};
+            var keys = Object.keys(localStorage);
+            for (var i = 0; i < keys.length; i++) {
+                var k = keys[i];
+                if (k && (k.indexOf('survey_') === 0 || k.indexOf('pso_') === 0 || k === 'last_survey_file' || k === 'pso_last_gender')) {
+                    backup[k] = localStorage.getItem(k);
+                }
+            }
+
+            var callsign = localStorage.getItem('pso_global_callsign_data');
+            var rawString = String(callsign || "pso_backup");
+            var firstLine = String(rawString.split('\n'));
+            var safeName = firstLine.trim()
+                .replace(/[:.\/\\?%*|"<>]/g, '-') 
+                .replace(/\s+/g, '_');
+
+            if (!safeName) safeName = "pso_backup";
+
+            var dataStr = JSON.stringify(backup, null, 2);
+            var blob = new Blob([dataStr], {type: "application/json"});
+            var url = URL.createObjectURL(blob);
+            
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = safeName + ".json";
+            
+            document.body.appendChild(link);
+            link.click();
+            
+            setTimeout(function() {
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+        } catch (e) {
+            alert("Ошибка при сохранении: " + e.message);
+        }
+    }
+
+    function importFromJson(el) {
+        if (!el || !el.files || el.files.length === 0) return;
+        var fileToLoad = el.files[0]; 
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                var data = JSON.parse(e.target.result);
+                if (confirm("Заменить данные?")) {
+                    localStorage.clear();
+                    for (var key in data) { localStorage.setItem(key, data[key]); }
+                    location.reload();
+                }
+            } catch (err) { alert("Ошибка файла"); }
+        };
+        reader.readAsText(fileToLoad);
+        el.value = "";
+    }
+
+    window.addEventListener("drop", function(e) {
+        e.preventDefault();
+        var files = e.dataTransfer.files;
+        if (files.length > 0) importFromJson({ files: files });
+    }, false);
+	
+	
+	
+</script>
+</body>
+</html>
