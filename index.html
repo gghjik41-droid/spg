@@ -1,106 +1,342 @@
 <!DOCTYPE html>
 <html lang="ru">
-<script data-goatcounter="https://gghjik41.goatcounter.com/count"
-        async src="//gc.zgo.at/count.js"></script>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>ПСО Панель Опросников</title>
-	<link rel="icon" type="image/png" href="favicon.png">
-    <style>
-        /* ОСНОВНОЙ ВИЗУАЛ */
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; padding-top: env(safe-area-inset-top); background-color: #eceff1; min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
-        
-        /* ШАПКА И НАВИГАЦИЯ */
-        .header-nav { background-color: #37474f; padding: 4px 8px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 1000; position: fixed; top: 0; left: 0; right: 0; height: 40px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
-        .header-nav::-webkit-scrollbar { display: none; }
-        
-        /* КНОПКИ УПРАВЛЕНИЯ */
-        .clear-btn { background-color: #b71c1c; color: white; border: none; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .pin-btn { background-color: #546e7a; color: white; border: none; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .pin-btn.active { background-color: #0288d1; }
-        .nav-btn { background-color: #455a64; color: #cfd8dc; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; text-transform: uppercase; white-space: nowrap; }
-        .nav-btn.active { background-color: #00c853; color: #fff; }
-        
-        /* КОНТЕЙНЕРЫ */
-        .main-wrapper { display: flex; width: 100%; padding: 5px; padding-right: 20px; margin-top: 48px; gap: 10px; box-sizing: border-box; align-items: flex-start; }
-        .form-side { flex: 0 0 55%; background: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); padding: 12px; box-sizing: border-box; position: relative; }
-        .result-side { flex: 0 0 45%; display: flex; flex-direction: column; gap: 8px; position: relative; }
-        
-        /* ЛИПКАЯ ЗАЯВКА */
-        .sticky-header { background: white; padding: 10px 12px; border-bottom: 2px solid #eee; position: fixed; top: 55px; left: 5px; width: calc(55% - 14px); z-index: 999; box-sizing: border-box; border-radius: 4px 4px 0 0; box-shadow: 0 4px 6px -2px rgba(0,0,0,0.1); }
-        .sticky-header.unpinned { position: static !important; width: 100% !important; padding: 0 0 8px 0; margin-bottom: 10px; box-shadow: none; }
-        
-        /* ЭЛЕМЕНТЫ ВВОДА */
-        #z_text { width: 100%; min-height: 75px; padding: 6px; box-sizing: border-box; border: 1px solid #cfd8dc; border-radius: 4px; font-family: inherit; font-size: 14px; }
-        #z_fixed { display: none; background: #f1f8e9; padding: 8px; border-radius: 6px; border: 1px solid #c8e6c9; line-height: 1.4em; font-size: 13px; color: #1b5e20; white-space: pre-wrap; }
-        .btn-ok { margin-top: 6px; background: #4caf50; color: white; border: none; border-radius: 4px; padding: 10px; width: 100%; cursor: pointer; font-weight: bold; }
-        #survey-frame { width: 100%; height: auto; min-height: 300px; border: none; display: block; overflow: hidden !important; margin-top: 140px; }
-        
-        /* ВЫДАЧА РЕЗУЛЬТАТА */
-        .btn-copy { background-color: #1976d2; color: white; border: none; padding: 12px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; position: fixed; top: 53px; right: 10px; width: calc(45% - 10px); z-index: 1001; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; }
-        
-        #output { 
-            width: calc(45% - 10px); 
-            position: fixed;
-            top: 105px; 
-            right: 10px;
-            bottom: 10px; 
-            height: auto; 
-            max-height: none; 
-            overflow-y: auto; 
-            padding: 10px 12px; 
-            border-radius: 4px; 
-            border: 1px solid #b0bec5; 
-            font-family: 'Segoe UI', sans-serif; 
-            font-size: 13px; 
-            background: white; 
-            white-space: pre-wrap; 
-            box-sizing: border-box; 
-            color: #263238; 
-            line-height: 1.3; 
-            margin-top: 0;
-            scrollbar-width: none; 
-            -ms-overflow-style: none; 
-        }
-        #output::-webkit-scrollbar { display: none; }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Опросники</title>
 
-        .res-row { margin-bottom: 2px; display: block; transition: background-color 0.3s ease; border-left: 3px solid transparent; }
-        .res-label { font-weight: 800; color: #1565c0; text-transform: uppercase; font-size: 11px; margin-right: 4px; }
-        .res-value { font-family: 'Consolas', 'Courier New', monospace; color: #000; font-size: 13px; }
-        
-        .res-row.active-focus {
-            background-color: #fff9c4;
-            border-left: 3px solid #00c853;
-            padding-left: 4px;
-        }
-        
-        @media (max-width: 900px) { 
-            .main-wrapper { flex-direction: column; padding-right: 5px; margin-top: 50px; } 
-            .form-side, .result-side { flex: 0 0 100%; width: 100%; position: static; } 
-            .sticky-header { position: static !important; width: 100% !important; } 
-            #survey-frame { margin-top: 0 !important; } 
-            .btn-copy { position: static; width: 100%; margin-bottom: 8px; } 
-            #output { position: static; width: 100%; margin-top: 0; transform: none !important; max-height: none; } 
-        }
-    </style>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
+    <link rel="manifest" href="manifest.json">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Опросники">
+
+    <!-- <script data-goatcounter="https://gghjik41.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script> -->
+
+	<style>
+			/* БЛОКИРОВКА ГОРИЗОНТАЛЬНОГО СКРОЛЛА И ЗУМА */
+			html {
+				/* Запрещаем прокрутку вбок на корню */
+				overflow-x: hidden; 
+				/* Запрещаем "резиновый" отскок (bounce эффект) в веб-приложении */
+				overscroll-behavior-x: none; 
+				width: 100%;
+				height: 100%;
+			}
+
+			/* Применяем правила ко всем элементам для предотвращения распирания */
+			*, *::before, *::after {
+				box-sizing: border-box;
+			}
+
+			/* ОСНОВНОЙ ВИЗУАЛ */
+			body { 
+				font-family: 'Segoe UI', sans-serif; 
+				margin: 0; 
+				padding: 0; 
+				/* УБРАНО: padding-top удален, чтобы не было серой полосы сверху */
+				background-color: #eceff1; 
+				min-height: 100vh; 
+				display: flex; 
+				flex-direction: column; 
+				overflow-y: auto; 
+				overflow-x: hidden; 
+				touch-action: manipulation; 
+				position: relative;
+				width: 100%;
+				-webkit-tap-highlight-color: transparent;
+			}
+
+			/* Принудительно ограничиваем все крупные блоки */
+			.master-container, #master-sticky, .nav-container, .main-wrapper {
+				max-width: 100vw;
+				overflow-x: hidden;
+			}
+
+			/* ШАПКА И НАВИГАЦИЯ */
+			.header-nav { 
+				background-color: #37474f; 
+				/* env оставляем ТОЛЬКО тут, чтобы шапка закрасила зону статус-бара */
+				padding: calc(4px + env(safe-area-inset-top, 0px)) 8px 4px 8px; 
+				display: grid; 
+				grid-template-columns: 1fr auto 1fr; 
+				align-items: center; 
+				gap: 10px; 
+				box-shadow: 0 2px 10px rgba(0,0,0,0.3); 
+				z-index: 1000; 
+				position: fixed; 
+				top: 0; 
+				left: 0; 
+				right: 0; 
+				height: auto;
+				min-height: 40px; 
+				overflow-x: auto; 
+				white-space: nowrap; 
+				scrollbar-width: none; 
+				touch-action: pan-x;
+				overscroll-behavior-x: contain;
+			}
+			.header-nav::-webkit-scrollbar { display: none; }
+
+			/* КНОПКИ УПРАВЛЕНИЯ */
+			.clear-btn { background-color: #b71c1c; color: white; border: none; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+			.pin-btn { background-color: #546e7a; color: white; border: none; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+			.pin-btn.active { background-color: #0288d1; }
+			.nav-btn { background-color: #455a64; color: #cfd8dc; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; text-transform: uppercase; white-space: nowrap; }
+			.nav-btn.active { background-color: #00c853; color: #fff; }
+
+			/* КОНТЕЙНЕРЫ */
+			.main-wrapper { 
+				display: flex; 
+				width: 100%; 
+				padding: 5px; 
+				padding-right: 20px; 
+				/* Опускаем контент под фиксированную шапку (48px + запас на env) */
+				margin-top: calc(48px + env(safe-area-inset-top, 0px)); 
+				gap: 10px; 
+				box-sizing: border-box; 
+				align-items: flex-start;
+			}
+				
+			.form-side { 
+				flex: 0 0 55%; 
+				background: white; 
+				border-radius: 4px; 
+				box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
+				padding: 5px; 
+				box-sizing: border-box; 
+				position: relative; 
+			}
+			
+			.result-side { 
+				flex: 0 0 45%; 
+				display: flex; 
+				flex-direction: column; 
+				gap: 8px; 
+				position: relative; 
+			}
+
+			/* ЛИПКАЯ ЗАЯВКА */
+			.sticky-header { 
+				background: white; 
+				padding: 3px 5px; 
+				border-bottom: 2px solid #eee; 
+				position: fixed; 
+				/* Прижимаем к низу шапки */
+				top: calc(48px + env(safe-area-inset-top, 0px)); 
+				left: 5px; 
+				width: calc(55% - 14px); 
+				z-index: 999; 
+				box-sizing: border-box; 
+				border-radius: 4px 4px 0 0; 
+				box-shadow: 0 4px 6px -2px rgba(0,0,0,0.1); 
+			}
+			.sticky-header.unpinned { position: static !important; width: 100% !important; padding: 0 0 8px 0; margin-bottom: 10px; box-shadow: none; }
+
+			/* ЭЛЕМЕНТЫ ВВОДА */
+			#z_text {
+				width: 100%;
+				min-height: 75px;
+				padding: 10px;
+				box-sizing: border-box;
+				border: 1px solid #cfd8dc;
+				border-radius: 4px;
+				font-family: inherit;
+				font-size: 16px;
+				resize: vertical; 
+				line-height: 1.4em; 
+			}
+			
+			#z_fixed { 
+				display: none; 
+				background: #f1f8e9; 
+				padding: 5px; 
+				border-radius: 6px; 
+				border: 1px solid #c8e6c9; 
+				line-height: 1.4em; 
+				font-size: 12px; 
+				color: #1b5e20; 
+				white-space: normal; 
+			}
+			
+			.btn-ok { margin-top: 6px; background: #4caf50; color: white; border: none; border-radius: 4px; padding: 10px; width: 100%; cursor: pointer; font-weight: bold; }
+			#survey-frame { width: 100%; height: auto; min-height: 300px; border: none; display: block; overflow: hidden !important; margin-top: 140px; }
+
+			/* ВЫДАЧА РЕЗУЛЬТАТА */
+			.btn-copy { 
+				background-color: #1976d2; 
+				color: white; 
+				border: none; 
+				padding: 12px 15px; 
+				border-radius: 4px; 
+				font-weight: bold; 
+				cursor: pointer; 
+				text-transform: uppercase; 
+				position: fixed; 
+				/* Тоже выравниваем под шапку */
+				top: calc(48px + env(safe-area-inset-top, 0px)); 
+				right: 10px; 
+				width: calc(45% - 10px); 
+				z-index: 1001; 
+				box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
+				display: flex; 
+				justify-content: space-between; 
+				align-items: center; 
+			}
+
+			#output { 
+				width: calc(45% - 10px); 
+				position: fixed;
+				top: calc(95px + env(safe-area-inset-top, 0px)); 
+				right: 10px;
+				bottom: 5px; 
+				height: auto; 
+				max-height: none; 
+				overflow-y: auto; 
+				box-sizing: border-box; 
+				background: white; 
+				padding: 5px; 
+				border-radius: 4px; 
+				box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
+				border: none; 
+				font-family: 'Segoe UI', sans-serif; 
+				font-size: 13px; 
+				white-space: pre-wrap; 
+				color: #263238; 
+				line-height: 1.3; 
+				scrollbar-width: none; 
+				-ms-overflow-style: none; 
+			}
+
+			#output::-webkit-scrollbar { display: none; }
+
+			.res-row { margin-bottom: 2px; display: block; transition: background-color 0.3s ease; border-left: 3px solid transparent; }
+			.res-label { font-weight: 800; color: #1565c0; text-transform: uppercase; font-size: 11px; margin-right: 4px; }
+			.res-value { 
+				/* Добавляем современные системные шрифты перед monospace */
+				font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace; 
+				color: #000; 
+				font-size: 13px; 
+				font-weight: 500; /* Немного увеличим плотность для читаемости на экранах */
+			}
+
+			.res-row.active-focus {
+				background-color: #fff9c4;
+				border-left: 3px solid #00c853;
+				padding-left: 4px;
+			}
+
+			@media (max-width: 900px) { 
+				.main-wrapper { 
+					flex-direction: column; 
+					padding: 3px; 
+					margin-top: calc(50px + env(safe-area-inset-top, 0px)); 
+					overflow-x: hidden; 
+				} 
+
+				.form-side { 
+					padding: 4px !important; 
+					flex: 0 0 100%; 
+					width: 100%; 
+					position: static; 
+					box-shadow: none; 
+				}
+
+				.result-side { 
+					flex: 0 0 100%; 
+					width: 100%; 
+					position: static; 
+					padding: 4px; 
+				} 
+
+				.sticky-header { 
+					position: static !important; 
+					width: 100% !important; 
+					padding: 0 0 8px 0; 
+				} 
+
+				#survey-frame { margin-top: 0 !important; } 
+
+				.btn-copy { 
+					position: static; 
+					width: 100%; 
+					margin-bottom: 8px; 
+					box-sizing: border-box; 
+				} 
+
+				#output { 
+					position: static; 
+					width: 100%; 
+					margin-top: 0; 
+					transform: none !important; 
+					max-height: none; 
+				}
+
+				#master-pin-btn { display: none !important; }
+			}
+
+			/* ЭКРАН ЗАГРУЗКИ (Loader) */
+			#loader-wrapper {
+				position: fixed;
+				top: 0; left: 0;
+				width: 100%; height: 100%;
+				background-color: #37474f;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				z-index: 9999;
+				transition: opacity 0.4s ease, visibility 0.4s ease;
+			}
+			.loader {
+				width: 45px; height: 45px;
+				border: 4px solid #cfd8dc;
+				border-top: 4px solid #00c853;
+				border-radius: 50%;
+				animation: loader-spin 1s linear infinite;
+			}
+			.loader-text {
+				margin-top: 15px;
+				color: white;
+				font-size: 13px;
+				font-weight: bold;
+				letter-spacing: 1px;
+				text-transform: uppercase;
+				/* Учитываем safe-area на случай если текст прижмет к челке */
+				padding-top: env(safe-area-inset-top, 0px);
+			}
+			@keyframes loader-spin {
+				0% { transform: rotate(0deg); }
+				100% { transform: rotate(360deg); }
+			}
+			.loader-hidden { opacity: 0; visibility: hidden; }
+		</style>
 </head>
 <body>
+
+<div id="loader-wrapper">
+    <div class="loader"></div>
+    <div class="loader-text">Загрузка задачи...</div>
+</div>
 
 <div class="header-nav" id="menu">
     <div style="display: flex; gap: 5px; justify-self: start;">
         <button class="clear-btn" onclick="clearAllData()" title="Полная очистка">✕</button>
         <button class="pin-btn active" id="master-pin-btn" onclick="togglePin()" title="Закрепить/открепить шапку заявки">📌</button>
     </div>
-    
+
     <div style="display: flex; gap: 5px; justify-content: center;">
-        <button class="nav-btn active" onclick="openSurvey('short.html', this)">Короткий</button>
-        <button class="nav-btn" onclick="openSurvey('elderly.html', this)">Старики</button>
-        <button class="nav-btn" onclick="openSurvey('teens.html', this)">Подростки</button>
-        <button class="nav-btn" onclick="openSurvey('forest.html', this)">Лес</button>
-        <button class="nav-btn" onclick="openSurvey('adults.html', this)">Взрослые</button>
+        <button class="nav-btn active" onclick="openSurvey('short.html', this)">111111</button>
+        <button class="nav-btn" onclick="openSurvey('elderly.html', this)">222222</button>
+        <button class="nav-btn" onclick="openSurvey('teens.html', this)">333333</button>
+        <button class="nav-btn" onclick="openSurvey('forest.html', this)">444444</button>
+        <button class="nav-btn" onclick="openSurvey('adults.html', this)">555555</button>
     </div>
-    
+
     <div style="display: flex; gap: 5px; justify-self: end; padding-right: 10px;">
         <button class="nav-btn" onclick="exportToJson()" title="Выгрузить JSON">💾</button>
         <button class="nav-btn" onclick="document.getElementById('import-file').click()" title="Загрузить JSON">📂</button>
@@ -119,9 +355,9 @@
             <div id="z_fixed"><div id="z_value"></div></div>
             <button id="z_confirm_btn" class="btn-ok" onclick="fixZ()">ОК</button>
         </div>
-        <iframe src="short.html" id="survey-frame" scrolling="no"></iframe>
+        <iframe src="short.html?v=21" id="survey-frame" scrolling="no"></iframe>
     </div>
-    
+
     <div class="result-side">
         <button class="btn-copy" id="copy-btn" onclick="copyText()">
             <span>Скопировать результат</span>
@@ -132,16 +368,29 @@
 </div>
 
 <script>
+    // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
     var ORDER = ['short', 'elderly', 'teens', 'forest', 'adults']; 
-    // globalZData — основной текст заявки
     var globalZData = localStorage.getItem('pso_z_main') || "";
-    // globalCallsignData — "Позывной / Дата / Время" (используется для системных нужд, например, имени файла)
     var globalCallsignData = localStorage.getItem('pso_global_callsign_data') || ""; 
     var globalFields = JSON.parse(localStorage.getItem('pso_global_fields') || "{}"); 
-    
+
     var currentSource = localStorage.getItem('last_survey_file') ? localStorage.getItem('last_survey_file').replace('.html', '') : 'short';
     var scrollTimeout;
 
+    /**
+     * Показывает или скрывает экран загрузки
+     */
+    function toggleLoader(show) {
+        const loader = document.getElementById('loader-wrapper');
+        if (loader) {
+            if (show) loader.classList.remove('loader-hidden');
+            else loader.classList.add('loader-hidden');
+        }
+    }
+
+    /**
+     * Подстраивает верхний отступ фрейма (анкеты).
+     */
     function adjustFrameOffset() {
         var header = document.getElementById('master-sticky');
         var frame = document.getElementById('survey-frame');
@@ -152,43 +401,56 @@
         }
     }
 
+    /**
+     * Переключает состояние закрепления шапки (Pin).
+     */
     function togglePin() {
         var btn = document.getElementById('master-pin-btn');
         var header = document.getElementById('master-sticky');
         if (!btn || !header) return;
+        
         var isActive = btn.classList.toggle('active');
         header.classList.toggle('unpinned', !isActive);
+        localStorage.setItem('pso_header_pinned', isActive);
         adjustFrameOffset();
     }
 
-    // ЛОГИКА БЛОКА ЗАЯВКА
+    /**
+     * Применяет изменения в поле "Z".
+     */
     function fixZ() {
         var val = document.getElementById('z_text').value; 
         globalZData = val;
         localStorage.setItem('pso_z_main', val);
-        
         if (val.trim() !== "") {
             renderZ(val);
         }
     }
 
+    /**
+     * Рендерит Z-текст.
+     */
     function renderZ(text) {
         var valDiv = document.getElementById('z_value');
         if (!valDiv) return;
-        valDiv.innerHTML = "";
-        var lines = text.split('\n');
-        lines.forEach(function(line) {
-            var span = document.createElement('span');
-            span.innerText = line || ' ';
-            valDiv.appendChild(span);
-        });
+        
+        var flatText = text.trim().split('\n')
+            .filter(line => line.trim() !== "") 
+            .join(' | '); 
+        
+        valDiv.innerText = flatText; 
+
         document.getElementById('z_text').style.display = 'none';
         document.getElementById('z_confirm_btn').style.display = 'none';
         document.getElementById('z_fixed').style.display = 'block';
         document.getElementById('z_edit_btn').style.display = 'block';
+        
         setTimeout(adjustFrameOffset, 30);
     }
 
+    /**
+     * Редактирование Z.
+     */
     function editZ() {
         var zInput = document.getElementById('z_text');
         zInput.value = globalZData;
@@ -199,6 +461,9 @@
         setTimeout(adjustFrameOffset, 30);
     }
 
+    /**
+     * Передает данные внутрь <iframe>.
+     */
     function broadcastData(call, fields) {
         var frame = document.getElementById('survey-frame');
         if (frame && frame.contentWindow) {
@@ -206,23 +471,35 @@
         }
     }
 
+    /**
+     * Переключает анкеты.
+     */
     function openSurvey(fileName, btn) {
         var frame = document.getElementById('survey-frame');
         if (!frame) return;
+        
+        // НЕ показываем лоадер при переключении
+        <!-- toggleLoader(true); -->
+
         currentSource = fileName.replace('.html', '');
         frame.src = fileName;
         var navBtns = document.querySelectorAll('.nav-btn');
         navBtns.forEach(function(b) { b.classList.remove('active'); });
         if (btn) btn.classList.add('active');
         localStorage.setItem('last_survey_file', fileName);
-        
+
         frame.onload = function() {
             broadcastData(globalCallsignData, globalFields);
             adjustFrameOffset();
             updateFinalOutput();
+            // Скрываем после прогрузки фрейма
+            setTimeout(() => toggleLoader(false), 200);
         };
     }
 
+    /**
+     * Полная очистка.
+     */
     function clearAllData() {
         if (confirm("Очистить все формы и результат?")) {
             localStorage.clear();
@@ -230,50 +507,49 @@
         }
     }
 
-    // ИСПРАВЛЕНО: Теперь индекс НЕ добавляет позывной сам, 
-    // он только отображает то, что прислал опросник в payload
-		function updateFinalOutput() {
-		var outDiv = document.getElementById('output');
-		if (!outDiv) return;
-		outDiv.innerHTML = ""; 
+    /**
+     * Обновляет итоговый текстовый блок.
+     */
+    function updateFinalOutput() {
+        var outDiv = document.getElementById('output');
+        if (!outDiv) return;
+        outDiv.innerHTML = ""; 
 
-		var raw = localStorage.getItem('survey_text_' + currentSource);
-		if (raw) {
-			try {
-				var payload = JSON.parse(raw);
-				if (Array.isArray(payload)) {
-					payload.forEach(function(item, index) {
-						var row = document.createElement('div');
-						row.className = 'res-row';
-						row.id = 'row-' + currentSource + '-' + index;
-						
-						// ПРОВЕРКА: Если это помечено как заголовок (Позывной)
-						if (item.isHeader) {
-							row.innerHTML = '<span class="res-value" style="font-weight:bold; display:block; margin-bottom:15px; font-size:1.1em; border-bottom:1px solid #444; padding-bottom:5px;">' + item.value + '</span>';
-						} 
-						// Если есть лейбл
-						else if (item.label && item.label.trim() !== "") {
-							row.innerHTML = '<span class="res-label">' + item.label + ':</span> <span class="res-value">' + item.value + '</span>';
-						} 
-						// Просто текст без лейбла (не заголовок)
-						else {
-							row.innerHTML = '<span class="res-value">' + item.value + '</span>';
-						}
-						
-						outDiv.appendChild(row);
-					});
-				}
-			} catch(e) { console.error("Ошибка отрисовки", e); }
-		}
-		// Обновляем время на кнопке или в статус-баре
-		var status = document.getElementById('save-status');
-		if (status) {
-			var now = new Date();
-			var timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-			status.innerText = "Обновлено в " + timeStr;
-		}
-	}
+        var raw = localStorage.getItem('survey_text_' + currentSource);
+        if (raw) {
+            try {
+                var payload = JSON.parse(raw);
+                if (Array.isArray(payload)) {
+                    payload.forEach(function(item, index) {
+                        var row = document.createElement('div');
+                        row.className = 'res-row';
+                        row.id = 'row-' + currentSource + '-' + index;
 
+                        if (item.isHeader) {
+                            row.innerHTML = '<span class="res-value" style="font-weight:bold; display:block; margin-bottom:15px; font-size:1.1em; border-bottom:1px solid #444; padding-bottom:5px;">' + item.value + '</span>';
+                        } 
+                        else if (item.label && item.label.trim() !== "") {
+                            row.innerHTML = '<span class="res-label">' + item.label + ':</span> <span class="res-value">' + item.value + '</span>';
+                        } 
+                        else {
+                            row.innerHTML = '<span class="res-value">' + item.value + '</span>';
+                        }
+                        outDiv.appendChild(row);
+                    });
+                }
+            } catch(e) { console.error("Ошибка отрисовки", e); }
+        }
+        var status = document.getElementById('save-status');
+        if (status) {
+            var now = new Date();
+            var timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            status.innerText = "Обновлено в " + timeStr;
+        }
+    }
+
+    /**
+     * Слушатель postMessage.
+     */
     window.addEventListener('message', function(event) {
         if (event.data.type === 'survey_update') {
             localStorage.setItem('survey_text_' + event.data.source, JSON.stringify(event.data.payload));
@@ -299,8 +575,6 @@
             if (globalCallsignData !== event.data.value) {
                 globalCallsignData = event.data.value;
                 localStorage.setItem('pso_global_callsign_data', globalCallsignData);
-                
-                // Обновляем выдачу, так как payload тоже изменился
                 updateFinalOutput(); 
             }
         }
@@ -322,6 +596,9 @@
         }
     });
 
+    /**
+     * Копирование.
+     */
     function copyText() {
         var out = document.getElementById('output');
         if (!out || out.innerText.indexOf('Результат опроса') === 0) return;
@@ -332,9 +609,7 @@
             if (node.nodeType === 1) { 
                 var tempNode = node.cloneNode(true);
                 var labels = tempNode.querySelectorAll('.res-label');
-                labels.forEach(function(l) {
-                    l.style.textTransform = 'none';
-                });
+                labels.forEach(function(l) { l.style.textTransform = 'none'; });
                 finalString += tempNode.innerText.trim() + "\n";
             }
         });
@@ -358,15 +633,36 @@
         }
     }
 
+    /**
+     * Инициализация.
+     */
     window.onload = function() {
         var savedZ = localStorage.getItem('pso_z_main') || "";
         globalZData = savedZ;
-        document.getElementById('z_text').value = savedZ;
-        
-        if (savedZ.trim() === "") {
+        var zTextarea = document.getElementById('z_text');
+        zTextarea.value = savedZ;
+
+        if (savedZ.trim() === "") { 
             editZ(); 
-        } else {
+        } else { 
             renderZ(savedZ); 
+        }
+
+        if (zTextarea) {
+            const ro = new ResizeObserver(function() {
+                adjustFrameOffset();
+            });
+            ro.observe(zTextarea);
+        }
+
+        var pinnedSetting = localStorage.getItem('pso_header_pinned');
+        var pinBtn = document.getElementById('master-pin-btn');
+        var stickyHeader = document.getElementById('master-sticky');
+
+        if (pinnedSetting !== null && pinBtn && stickyHeader) {
+            var isPinned = (pinnedSetting === 'true');
+            pinBtn.classList.toggle('active', isPinned);
+            stickyHeader.classList.toggle('unpinned', !isPinned);
         }
 
         var savedCall = localStorage.getItem('pso_global_callsign_data');
@@ -378,7 +674,7 @@
             localStorage.setItem('pso_global_callsign_data', savedCall);
         }
         globalCallsignData = savedCall;
-        
+
         var lastFile = localStorage.getItem('last_survey_file') || 'short.html';
         var buttons = document.querySelectorAll('.nav-btn');
         var found = false;
@@ -388,13 +684,17 @@
                 found = true;
             }
         });
-        if(!found && buttons.length > 0) openSurvey('short.html', buttons);
+        if(!found && buttons.length > 0) openSurvey('short.html', buttons[0]);
 
         updateFinalOutput();
+        setTimeout(adjustFrameOffset, 150);
+
+        // Убираем лоадер после завершения всей логики загрузки
+        setTimeout(() => toggleLoader(false), 500);
     };
 
     window.addEventListener('resize', adjustFrameOffset);
-    
+
     function exportToJson() {
         try {
             var backup = {};
@@ -405,35 +705,22 @@
                     backup[k] = localStorage.getItem(k);
                 }
             }
-
             var callsign = localStorage.getItem('pso_global_callsign_data');
             var rawString = String(callsign || "pso_backup");
-            var firstLine = String(rawString.split('\n'));
-            var safeName = firstLine.trim()
-                .replace(/[:.\/\\?%*|"<>]/g, '-') 
-                .replace(/\s+/g, '_');
-
+            var firstLine = String(rawString.split('\n')[0]);
+            var safeName = firstLine.trim().replace(/[:.\/\\?%*|"<>]/g, '-').replace(/\s+/g, '_');
             if (!safeName) safeName = "pso_backup";
 
             var dataStr = JSON.stringify(backup, null, 2);
             var blob = new Blob([dataStr], {type: "application/json"});
             var url = URL.createObjectURL(blob);
-            
             var link = document.createElement('a');
             link.href = url;
             link.download = safeName + ".json";
-            
             document.body.appendChild(link);
             link.click();
-            
-            setTimeout(function() {
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(url);
-            }, 100);
-
-        } catch (e) {
-            alert("Ошибка при сохранении: " + e.message);
-        }
+            setTimeout(function() { document.body.removeChild(link); window.URL.revokeObjectURL(url); }, 100);
+        } catch (e) { alert("Ошибка при сохранении: " + e.message); }
     }
 
     function importFromJson(el) {
@@ -459,9 +746,16 @@
         var files = e.dataTransfer.files;
         if (files.length > 0) importFromJson({ files: files });
     }, false);
-	
-	
-	
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('sw.js').then(function(reg) {
+                console.log('ServiceWorker готов!', reg.scope);
+            }).catch(function(err) {
+                console.log('Ошибка SW:', err);
+            });
+        });
+    }
 </script>
 </body>
 </html>
