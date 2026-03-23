@@ -330,11 +330,11 @@
     </div>
 
     <div style="display: flex; gap: 5px; justify-content: center;">
-        <button class="nav-btn active" onclick="openSurvey('short.html', this)">111111</button>
-        <button class="nav-btn" onclick="openSurvey('elderly.html', this)">222222</button>
-        <button class="nav-btn" onclick="openSurvey('teens.html', this)">333333</button>
-        <button class="nav-btn" onclick="openSurvey('forest.html', this)">444444</button>
-        <button class="nav-btn" onclick="openSurvey('adults.html', this)">555555</button>
+        <button class="nav-btn active" onclick="openSurvey('111111.html', this)">111111</button>
+        <button class="nav-btn" onclick="openSurvey('222222.html', this)">222222</button>
+        <button class="nav-btn" onclick="openSurvey('333333.html', this)">333333</button>
+        <button class="nav-btn" onclick="openSurvey('444444.html', this)">444444</button>
+        <button class="nav-btn" onclick="openSurvey('555555.html', this)">555555</button>
     </div>
 
     <div style="display: flex; gap: 5px; justify-self: end; padding-right: 10px;">
@@ -355,7 +355,7 @@
             <div id="z_fixed"><div id="z_value"></div></div>
             <button id="z_confirm_btn" class="btn-ok" onclick="fixZ()">ОК</button>
         </div>
-        <iframe src="short.html?v=21" id="survey-frame" scrolling="no"></iframe>
+        <iframe src="111111.html?v=21" id="survey-frame" scrolling="no"></iframe>
     </div>
 
     <div class="result-side">
@@ -369,12 +369,12 @@
 
 <script>
     // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
-    var ORDER = ['short', 'elderly', 'teens', 'forest', 'adults']; 
+    var ORDER = ['111111', '222222', '333333', '444444', '555555']; 
     var globalZData = localStorage.getItem('pso_z_main') || "";
     var globalCallsignData = localStorage.getItem('pso_global_callsign_data') || ""; 
     var globalFields = JSON.parse(localStorage.getItem('pso_global_fields') || "{}"); 
 
-    var currentSource = localStorage.getItem('last_survey_file') ? localStorage.getItem('last_survey_file').replace('.html', '') : 'short';
+    var currentSource = localStorage.getItem('last_survey_file') ? localStorage.getItem('last_survey_file').replace('.html', '') : '111111';
     var scrollTimeout;
 
     /**
@@ -675,7 +675,7 @@
         }
         globalCallsignData = savedCall;
 
-        var lastFile = localStorage.getItem('last_survey_file') || 'short.html';
+        var lastFile = localStorage.getItem('last_survey_file') || '111111.html';
         var buttons = document.querySelectorAll('.nav-btn');
         var found = false;
         buttons.forEach(function(btn) {
@@ -684,7 +684,7 @@
                 found = true;
             }
         });
-        if(!found && buttons.length > 0) openSurvey('short.html', buttons[0]);
+        if(!found && buttons.length > 0) openSurvey('111111.html', buttons[0]);
 
         updateFinalOutput();
         setTimeout(adjustFrameOffset, 150);
