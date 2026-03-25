@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Опросник (Короткий)</title>
+	
+<style>
+    /* 1. Обнуляем ВСЕ отступы body, чтобы контент касался краев */
+    body { 
+        font-family: 'Segoe UI', sans-serif; 
+        background: white; 
+        margin: 0; 
+        padding: 0; /* Полностью обнуляем */
+        color: #333; 
+        overflow-x: hidden; 
+    }
+
+    /* 2. Убираем боковые отступы у всех элементов */
+    h2, .field-group, .section-title, .add-field-btn { 
+        padding-left: 0; 
+        padding-right: 0; 
+    }
+
+    h2 { 
+        margin-top: 0; 
+        color: #211e1e; 
+        border-bottom: 2px solid #3b3535; 
+        padding-bottom: 8px; 
+        font-size: 18px; 
+        text-transform: uppercase; 
+        margin-bottom: 15px; 
+    }
+
+    .field-group { 
+        margin-bottom: 15px; 
+        border-bottom: 1px solid #f0f0f0; 
+        padding-bottom: 8px; 
+        position: relative; 
+        box-sizing: border-box; 
+    }
+
+    /* Подсказки: оставляем внутренний padding только для текста относительно зеленой плашки */
+    .hint { 
+        font-size: 12px; 
+        color: #2e7d32; 
+        margin-bottom: 4px; 
+        display: block; 
+        line-height: 1.3; 
+        background: #f1f8e9; 
+        padding: 4px 10px; 
+        border-left: 3px solid #4caf50; 
+        white-space: pre-wrap; 
+    }
+
+    label { 
+        display: block; 
+        font-weight: 700; 
+        margin-bottom: 2px; 
+        font-size: 13px; 
+        color: #263238; 
+        text-decoration: underline; 
+    }
+
+    /* Поля ввода теперь будут занимать 100% ширины без зазоров по бокам */
+    input, .editable-field, textarea { 
+        width: 100%; 
+        padding: 8px 10px; 
+        border: 1px solid #cfd8dc; 
+        border-radius: 6px; 
+        box-sizing: border-box; 
+        font-size: 16px; 
+        background: #fafafa; 
+        display: block; 
+        outline: none; 
+        transition: all 0.2s; 
+    }
+
+    input:focus, .editable-field:focus, textarea:focus { 
+        border-color: #4caf50; 
+        background: #fff; 
+    }
+
+    .editable-field { 
+        min-height: 33px; 
+        line-height: 1.4; 
+        white-space: pre-wrap; 
+        overflow-wrap: break-word; 
+        cursor: text; 
+    }
+
+    .editable-field:empty:before { content: attr(placeholder); color: #999; }
+
+    .gender-toggle { 
+        display: flex; 
+        height: 30px; 
+        border: 1px solid #ccc; 
+        border-radius: 4px; 
+        overflow: hidden; 
+        margin-left: 0; 
+        margin-top: 5px; 
+    }
+
+    .gender-btn { 
+        border: none; 
+        background: #eceff1; 
+        color: #546e7a; 
+        cursor: pointer; 
+        padding: 0 10px; 
+        font-weight: bold; 
+        font-size: 12px; 
+        transition: all 0.2s; 
+    }
+
+    .gender-btn.active { background: #4caf50; color: white; }
+    .gender-btn:first-child { border-right: 1px solid #ccc; }
+
+    .add-field-btn { 
+        font-size: 11px; 
+        color: #1976d2; 
+        cursor: pointer; 
+        text-decoration: none; 
+        display: inline-block; 
+        margin-top: 5px; 
+        font-weight: bold; 
+    }
+
+    .dynamic-field-wrapper { 
+        position: relative; 
+        margin-top: 8px; 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        padding-right: 0; /* Обнуляем */
+    }
+
+    .dynamic-field { 
+        border-left: 3px dashed #1976d2 !important; 
+        background: #f9fbe7 !important; 
+        flex-grow: 1; 
+    }
+
+    .remove-btn { 
+        color: #f44336; 
+        cursor: pointer; 
+        font-weight: bold; 
+        font-size: 20px; 
+        padding: 0 5px; 
+        user-select: none; 
+    }
+
+    .section-title { 
+        background: #ffffff; 
+        color: #333; 
+        padding: 6px 0; /* Боковые отступы в ноль */
+        border-top: 3px solid #545454; 
+        border-bottom: 1px solid #eee; 
+        font-size: 15px; 
+        font-weight: bold; 
+        margin: 15px 0 0 0; 
+        display: block; 
+    }
+</style>
+
+</head>
+<body oninput="syncEverything()">
+
+     <h2>Короткий опросник</h2>
+
+	<div class="field-group">
+		<label>Позывной, дата и время прозвона:</label>
+		<div style="display: flex; height: 38px; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: #fafafa;">
+			<input type="text" id="z_call_name" class="q-field q-field-no-output" 
+				   placeholder="Позывной" 
+				   style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent; border-right: 1px solid #eee;">
+			
+			<input type="text" id="z_call_date" class="q-field q-field-no-output" 
+				   placeholder="Дата и время" 
+				   style="flex: 1.5; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent;">
+			
+			<button type="button" onclick="setCurrentTime()" title="Обновить время" 
+					style="width: 38px; height: 100%; background: #4caf50; color: white; border: none; 
+						   border-left: 1px solid #ccc; cursor: pointer; display: flex; 
+						   align-items: center; justify-content: center;">
+				<span style="font-size: 14px;">▶</span>
+			</button>
+		</div>
+		<input type="hidden" id="z_call" class="q-field">
+	</div>
+	
+	<div class="field-group">
+		<span class="hint">ФИО заявителя, номер телефона в формате 81110000000, родство, доп. номер для связи.</span>
+		<label>Прозвон заявителя:</label>
+		<div id="g_name" 
+		     class="editable-field q-field q-global" 
+		     contenteditable="true" 
+		     data-p="Прозвон заявителя: " 
+		     oninput="syncField(this)" 
+		     placeholder="Введите данные заявителя..."></div>
+		<a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+	</div>
+
+    <div class="field-group">
+        <span class="hint">ФИО БВП (любая смена ФИО), дата рождения, возраст. Сверяем письменно!</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
+            <label style="margin-bottom: 0;">Пропал{a}:</label>
+            <div class="gender-toggle">
+                <button type="button" id="sex_m" class="gender-btn active" onclick="setGender('m')">М</button>
+                <button type="button" id="sex_f" class="gender-btn" onclick="setGender('f')">Ж</button>
+            </div>
+        </div>
+        <div id="g_fio" class="editable-field q-field q-global" contenteditable="true" data-p="Пропал{a}: " oninput="syncField(this)"></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <span class="hint">Коротко: адрес пропажи (город, район, улица, № дома, № подъезда, № квартиры), дата, время.</span>
+        <div id="g_event" class="editable-field q-field q-global" contenteditable="true" data-p="" oninput="syncField(this)" placeholder="Обстоятельства..."></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+	   <div class="field-group">
+        <span class="hint">Диагнозы, медикаменты, слух/зрение/ходьба, ориентирование во времени и пространстве, память.</span>
+        <label>Здоровье:</label>
+        <div id="g_health" class="editable-field q-field q-global" contenteditable="true" data-p="Здоровье: " oninput="syncField(this)"></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <span class="hint">Рост, телосложение, цвет и длина волос, цвет глаз, носит ли бороду/усы/очки.</span>
+        <label>Приметы:</label>
+        <div id="g_body" class="editable-field q-field q-global" contenteditable="true" data-p="Приметы: " oninput="syncField(this)"></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <span class="hint">Есть ли шрамы, тату, заметные родинки/родимые пятна, особенности зубов, походки, отсутствие пальцев и т. д.</span>
+        <label>Особые:</label>
+        <div id="g_special" class="editable-field q-field q-global" contenteditable="true" data-p="Особые: " oninput="syncField(this)"></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <span class="hint">Что было надето/обувь/головной убор (цвет, материал, надписи)</span>
+        <label>Одежда:</label>
+        <div id="g_clothes" class="editable-field q-field q-global" contenteditable="true" data-p="Одежда: " oninput="syncField(this)"></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <span class="hint">Что с собой (паспорт, наличные деньги, банковские карты, проездные, ключи, украшения), если нет, так и пишем «паспорт – нет, наличные - нет» и т.д.</span>
+        <label>С собой:</label>
+        <div id="g_with" class="editable-field q-field q-global" contenteditable="true" data-p="С собой: " oninput="syncField(this)"></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <span class="hint">Даже если остался дома. На кого зарегистрирована симка, марка и модель. Если сим на заявителя - попросить взять выписку звонков. В сети ли сейчас телефон. Когда был в сети в последний раз. Спрашиваем все номера.</span>
+        <label>Телефон БВП:</label>
+        <div id="g_namber" class="editable-field q-field q-global" contenteditable="true" data-p="Телефон БВП: " oninput="syncField(this)"></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <span class="hint">Где, с кем и сколько проживает/зарегистрирован{a}/пропал{a}.</span>
+        <label>Проживает/прописан{a}/пропал{a}:</label>
+        <div id="g_adress" class="editable-field q-field q-global" contenteditable="true" data-p="Проживает/прописан{a}/пропал{a}: " oninput="syncField(this)"></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <span class="hint">Пропадал{a} ли ранее, когда/как и где находили.</span>
+        <div id="g_last" class="editable-field q-field q-global" contenteditable="true" data-p="" oninput="syncField(this)" placeholder="Ранее..."></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <span class="hint">ОБСТОЯТЕЛЬСТВА ПРОПАЖИ ПОДРОБНО Дата и время пропажи (во сколько стал недоступен/не отвечать на тел)! Что предпринимали для поиска (были на месте пропажи, звонили в БРНС).</span>
+        <label>Подробности:</label>
+        <div id="g_eventfull" class="editable-field q-field q-global" contenteditable="true" data-p="Подробности: " oninput="syncField(this)"></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <span class="hint">Полиция: ФИО заявителя, ОВД, контакты. Оговариваем срок подачи заявление в полицию до 3-х суток от момента поступлении заявки, в противном случае мы вынуждены будем отказать в поиске.</span>
+        <label>ЗВП:</label>
+        <div id="g_police" class="editable-field q-field q-global" contenteditable="true" data-p="ЗВП: " oninput="syncField(this)"></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <label>Проблемы с законом:</label>
+        <div id="g_low" class="editable-field q-field q-global" contenteditable="true" data-p="Проблемы с законом: " oninput="syncField(this)"></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <label>Кредиты/долги:</label>
+        <div id="g_money" class="editable-field q-field q-global" contenteditable="true" data-p="Кредиты/долги: " oninput="syncField(this)"></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <span class="hint">Мысли о суициде – если нет, подробно, что дословно сказал заявитель, если да, из-за чего, как давно, что говорит о причинах, были ли ранее попытки/когда/способ, что говорит о способе/месте/времени.</span>
+        <label>Суицид:</label>
+        <div id="g_death" class="editable-field q-field q-global" contenteditable="true" data-p="Суицид: " oninput="syncField(this)"></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <span class="hint">Не служит ли в армии в настоящий момент, не скрывается от службы. СВО.</span>
+        <label>Воинская обязанность:</label>
+        <div id="g_army" class="editable-field q-field q-global" contenteditable="true" data-p="Воинская обязанность: " oninput="syncField(this)"></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <span class="hint">Курение, алкоголь (как часто, в одиночестве или с кем-то, дома или где-то), если может уйти в запой – на какой срок, выходит самостоятельно или с помощью, наркотики – если да, какие, как часто, где берет.</span>
+        <div id="g_risks" class="editable-field q-field q-global" contenteditable="true" data-p="" oninput="syncField(this)" placeholder="Вредные привычки..."></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+    <div class="field-group">
+        <span class="hint">Согласие на ориентировки, указание медпомощи (если необходимо). Объяснить, что информация будет размещена в интернете.</span>
+        <label>Согласие на орки:</label>
+        <div id="g_miss" class="editable-field q-field q-global" contenteditable="true" data-p="Согласие на орки: " oninput="syncField(this)"></div>
+        <a class="add-field-btn" onclick="addNewField(this)">[+] ДОБАВИТЬ поле вне вопроса</a>
+    </div>
+
+<script>
+    var STORAGE_KEY = 'survey_cache_short_v51'; 
+    var SOURCE_ID = 'short'; 
+    var currentGender = 'm';
+    var lastSentIndex = -1; // Для предотвращения лишних сообщений при движении мыши
+
+    var genderDictionary = {
+        'm': { '{a}': '', '{а}': '' , '{ла}': '', '{love}': 'девушка', '{ела}':'ел' },
+        'f': { '{a}': 'а', '{а}': 'а' , '{ла}': 'ла', '{love}': 'парень', '{ела}':'ла' }
+    };
+
+    // НОВАЯ ЛОГИКА: Склеивает части позывного и даты в основное поле z_call
+    function updateFullCallsign() {
+        var nameVal = document.getElementById('z_call_name').value.trim();
+        var dateVal = document.getElementById('z_call_date').value.trim();
+        var callEl = document.getElementById('z_call');
+        
+        if (callEl) {
+            // Формируем общую строку: "Позывной Дата" или просто что-то одно
+            callEl.value = (nameVal && dateVal) ? nameVal + " " + dateVal : (nameVal || dateVal);
+            
+            // Сразу синхронизируем с системой и сохраняем
+            window.parent.postMessage({ type: 'sync_globals', value: callEl.value }, '*');
+            localStorage.setItem('pso_global_callsign_data', callEl.value);
+        }
+    }
+
+    function setGender(sex) {
+        if (currentGender === sex) return; 
+        currentGender = sex;
+        var btnM = document.getElementById('sex_m');
+        var btnF = document.getElementById('sex_f');
+        if (btnM) btnM.className = (sex === 'm' ? 'gender-btn active' : 'gender-btn');
+        if (btnF) btnF.className = (sex === 'f' ? 'gender-btn active' : 'gender-btn');
+        
+        updateLabelsOnPage();
+        localStorage.setItem('pso_last_gender', sex);
+
+        // Синхронизируем пол с родителем
+        window.parent.postMessage({ 
+            type: 'sync_field', 
+            fieldId: 'pso_last_gender', 
+            value: sex 
+        }, '*');
+
+        syncEverything();
+    }
+
+    function applyGender(text) {
+        var result = text;
+        var dict = genderDictionary[currentGender];
+        for (var key in dict) {
+            result = result.split(key).join(dict[key]);
+        }
+        return result;
+    }
+
+    window.addEventListener('message', function(event) {
+        if (event.data.type === 'set_global_data') {
+            // Синхронизация позывного/времени
+            var callEl = document.getElementById('z_call');
+            var nameInp = document.getElementById('z_call_name');
+            var dateInp = document.getElementById('z_call_date');
+            
+            if (event.data.value !== undefined) {
+                var val = event.data.value.trim();
+                if (callEl) callEl.value = val;
+
+                // При получении данных извне — пытаемся разложить их по двум полям
+                var parts = val.split(/\s+/);
+                if (parts.length >= 2 && parts[parts.length-1].includes(':')) {
+                    dateInp.value = parts[parts.length-2] + " " + parts[parts.length-1];
+                    nameInp.value = parts.slice(0, parts.length-2).join(' ');
+                } else {
+                    nameInp.value = val;
+                }
+            }
+            
+            if (event.data.fields) {
+                // Синхронизация пола
+                if (event.data.fields['pso_last_gender'] && event.data.fields['pso_last_gender'] !== currentGender) {
+                    currentGender = event.data.fields['pso_last_gender'];
+                    var btnM = document.getElementById('sex_m');
+                    var btnF = document.getElementById('sex_f');
+                    if (btnM) btnM.className = (currentGender === 'm' ? 'gender-btn active' : 'gender-btn');
+                    if (btnF) btnF.className = (currentGender === 'f' ? 'gender-btn active' : 'gender-btn');
+                    updateLabelsOnPage();
+                }
+
+                // Синхронизация остальных полей
+                for (var id in event.data.fields) {
+                    var field = document.getElementById(id);
+                    if (field && document.activeElement !== field) {
+                        var newVal = event.data.fields[id];
+                        if (field.tagName === 'DIV') {
+                            if (field.innerText !== newVal) field.innerText = newVal;
+                        } else {
+                            if (field.value !== newVal) {
+                                field.value = newVal;
+                                field.dispatchEvent(new Event('input', { bubbles: true }));
+                            }
+                        }
+                    }
+                }
+            }
+            syncEverything();
+            sendHeight();
+        }
+    });
+
+    function syncField(el) {
+        var val = (el.tagName === 'DIV' ? el.innerText : el.value);
+        window.parent.postMessage({ type: 'sync_field', fieldId: el.id, value: val }, '*');
+        syncEverything();
+    }
+
+    var syncTimer;
+    function syncEverything() {
+        // 1. Сначала склеиваем позывной и дату в скрытое поле z_call
+        updateFullCallsign();
+
+        clearTimeout(syncTimer);
+        syncTimer = setTimeout(function() {
+            var payload = []; 
+            var fields = document.querySelectorAll('.q-field');
+            
+            fields.forEach(function(el) {
+		// Игнорируем запчасти
+		if (el.id === 'z_call_name' || el.id === 'z_call_date' || el.classList.contains('q-field-no-output')) {
+			return; 
+		}
+
+		var val = (el.tagName === 'DIV' ? el.innerText : el.value).trim();
+		
+		if (val !== "") {
+			if (el.id === 'z_call') {
+				// Добавляем флаг isHeader, чтобы индекс узнал позывной "в лицо"
+				payload.push({ label: "", value: val, isHeader: true });
+			} else {
+				var rawPrefix = el.getAttribute('data-p') || "";
+				var label = applyGender(rawPrefix).replace(':', '').trim(); 
+				payload.push({ label: label, value: val });
+			}
+		}
+	});
+
+            window.parent.postMessage({ 
+                type: 'survey_update', 
+                source: SOURCE_ID, 
+                payload: payload 
+            }, '*');
+
+            saveLocal();
+            sendHeight();
+            initScrollSync(); 
+        }, 150);
+    }
+
+    function addNewField(btn, val) {
+        var wrapper = document.createElement('div');
+        wrapper.className = 'dynamic-field-wrapper';
+        var input = document.createElement('div');
+        input.className = 'dynamic-field editable-field q-field';
+        input.contentEditable = "true";
+        input.setAttribute('data-dynamic', 'true');
+        input.setAttribute('data-p', '');
+        input.innerText = val || "";
+        input.oninput = function() { syncEverything(); };
+        var removeBtn = document.createElement('span');
+        removeBtn.className = 'remove-btn';
+        removeBtn.innerHTML = '×';
+        removeBtn.onclick = function() { 
+            wrapper.remove(); 
+            syncEverything(); 
+            initScrollSync(); 
+        };
+        wrapper.appendChild(input);
+        wrapper.appendChild(removeBtn);
+        btn.parentNode.insertBefore(wrapper, btn);
+        sendHeight();
+        initScrollSync(); 
+    }
+
+    function saveLocal() {
+        var data = { static: {}, dynamic: [], gender: currentGender };
+        document.querySelectorAll('input:not([data-dynamic]), .editable-field:not([data-dynamic])').forEach(function(el, i) {
+            data.static[el.id || ('idx_' + i)] = (el.tagName === 'DIV' ? el.innerText : el.value);
+        });
+        document.querySelectorAll('[data-dynamic="true"]').forEach(function(el) {
+            var groups = Array.prototype.slice.call(document.querySelectorAll('.field-group'));
+            data.dynamic.push({ 
+                groupIdx: groups.indexOf(el.closest('.field-group')), 
+                value: el.innerText 
+            });
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadLocal() {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        var globalGender = localStorage.getItem('pso_last_gender');
+        
+        if (!raw) {
+            if (globalGender) setGender(globalGender);
+            return;
+        }
+        
+        var data = JSON.parse(raw);
+        setGender(globalGender || data.gender || 'm');
+
+        document.querySelectorAll('input:not([data-dynamic]), .editable-field:not([data-dynamic])').forEach(function(el, i) {
+            var val = data.static[el.id || ('idx_' + i)];
+            if (val !== undefined) {
+                if (el.tagName === 'DIV') el.innerText = val;
+                else el.value = val;
+            }
+        });
+        if (data.dynamic) {
+            var groups = document.querySelectorAll('.field-group');
+            data.dynamic.forEach(function(item) {
+                if (groups[item.groupIdx]) addNewField(groups[item.groupIdx].querySelector('.add-field-btn'), item.value);
+            });
+        }
+    }
+
+    function updateLabelsOnPage() {
+        document.querySelectorAll('label, .hint').forEach(function(el) {
+            if (!el.hasAttribute('data-original')) el.setAttribute('data-original', el.innerHTML);
+            el.innerHTML = applyGender(el.getAttribute('data-original'));
+        });
+    }
+
+    function sendHeight() {
+        var height = document.documentElement.offsetHeight || document.body.scrollHeight;
+        window.parent.postMessage({ type: 'set_height', height: height }, '*');
+    }
+
+    // ИСПРАВЛЕННАЯ ФУНКЦИЯ: Теперь обновляет только поле даты
+    function setCurrentTime() {
+        const dateInp = document.getElementById('z_call_date');
+        if (!dateInp) return;
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('ru-RU');
+        const timeStr = now.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+        
+        // Пишем время именно в поле даты
+        dateInp.value = dateStr + " " + timeStr;
+
+        // Обновляем склейку и отчет
+        syncEverything();
+    }
+
+    function initScrollSync() {
+        var outputIndex = 0;
+        document.querySelectorAll('.q-field:not(.q-field-no-output)').forEach(function(el) {
+            var val = (el.tagName === 'DIV' ? el.innerText : el.value).trim();
+            if (val !== "" && el.id !== 'z_call_name' && el.id !== 'z_call_date') {
+                el.setAttribute('data-index', outputIndex);
+                outputIndex++;
+            } else {
+                el.removeAttribute('data-index');
+            }
+        });
+    }
+
+    document.addEventListener('mousemove', function(e) {
+        var targetField = e.target.closest('.q-field[data-index]');
+        if (targetField) {
+            var idx = targetField.getAttribute('data-index');
+            if (idx !== null && idx !== lastSentIndex) {
+                lastSentIndex = idx;
+                window.parent.postMessage({ type: 'sync_scroll', source: SOURCE_ID, index: idx }, '*');
+            }
+        }
+    });
+
+    window.onload = function() {
+        loadLocal(); 
+        updateLabelsOnPage(); 
+        
+        var nameInp = document.getElementById('z_call_name');
+        var dateInp = document.getElementById('z_call_date');
+        var globalCall = localStorage.getItem('pso_global_callsign_data');
+        
+        if (globalCall) {
+            // Пытаемся разложить сохраненную строку
+            var parts = globalCall.trim().split(/\s+/);
+            if (parts.length >= 2 && parts[parts.length-1].includes(':')) {
+                dateInp.value = parts[parts.length-2] + " " + parts[parts.length-1];
+                nameInp.value = parts.slice(0, parts.length-2).join(' ');
+            } else {
+                nameInp.value = globalCall;
+            }
+        }
+
+        // Если дата так и не появилась — ставим текущую
+        if (!dateInp.value) {
+            setCurrentTime();
+        }
+
+        // Слушаем изменения в обоих полях
+        nameInp.addEventListener('input', syncEverything);
+        dateInp.addEventListener('input', syncEverything);
+
+        syncEverything();
+        setTimeout(function() {
+            sendHeight();
+            initScrollSync();
+        }, 500);
+    }
+</script>
+</body>
+</html>

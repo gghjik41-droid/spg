@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>НА ПСР</title>
+	
+<style>
+    body { 
+        font-family: 'Segoe UI', sans-serif; 
+        background: white; 
+        margin: 0; 
+        padding: 0; 
+        color: #333; 
+        overflow-x: hidden; 
+    }
+
+    h2 { 
+        margin-top: 0; 
+        color: #211e1e; 
+        border-bottom: 2px solid #3b3535; 
+        padding-bottom: 6px; 
+        font-size: 16px;
+        text-transform: uppercase; 
+        margin-bottom: 10px;
+    }
+
+    /* Секции */
+    .section-block { 
+        margin-bottom: 4px; 
+    }
+
+    .section-header { 
+        background: #f5f5f5; 
+        color: #2e7d32; 
+        padding: 8px 10px; 
+        cursor: pointer; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        font-weight: bold; 
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        user-select: none;
+        border: 1px solid #c8e6c9;
+        border-radius: 4px;
+        margin: 4px;
+    }
+
+    .section-header:hover {
+        background: #e8f5e9;
+        border-color: #81c784;
+    }
+
+    .section-toggle {
+        font-size: 16px;
+        transition: transform 0.3s ease;
+    }
+
+    .section-block.open .section-toggle {
+        transform: rotate(180deg);
+    }
+
+    .section-block.open .section-header {
+        background: #e8f5e9;
+        border-color: #4caf50; 
+    }
+
+    .section-content { 
+        padding: 8px; 
+        display: none; 
+        background: white;
+    }
+
+    .section-block.open .section-content {
+        display: block; 
+    }
+
+    /* Поля ввода — как в опроснике */
+    .field-group { 
+        margin-bottom: 8px; 
+        border-bottom: 1px solid #f0f0f0; 
+        padding-bottom: 4px; 
+    }
+
+    label { 
+        display: block; 
+        font-weight: 700; 
+        margin-bottom: 1px; 
+        font-size: 12px; 
+        color: #263238; 
+        text-decoration: underline; 
+    }
+
+    input, textarea { 
+        width: 100%; 
+        padding: 6px 8px; 
+        border: 1px solid #cfd8dc; 
+        border-radius: 6px; 
+        box-sizing: border-box; 
+        font-size: 14px;
+        font-family: 'Segoe UI', sans-serif;
+        background: #fafafa; 
+        display: block; 
+        outline: none; 
+        transition: all 0.2s; 
+    }
+
+    input:focus, textarea:focus { 
+        border-color: #4caf50; 
+        background: #fff; 
+    }
+
+    textarea {
+        resize: none;
+        min-height: 60px;
+        overflow: hidden;
+    }
+
+    /* Поля в строку */
+    .row-fields {
+        display: flex;
+        gap: 10px;
+    }
+
+    .row-fields .field-group {
+        flex: 1;
+    }
+
+    /* Ссылка на добавление — как в опроснике */
+    .add-field-btn { 
+        font-size: 11px; 
+        color: #1976d2; 
+        cursor: pointer; 
+        text-decoration: none; 
+        display: inline-block; 
+        margin-top: 5px; 
+        font-weight: bold; 
+    }
+
+    /* Кнопка удаления */
+    .remove-btn { 
+        color: #f44336; 
+        cursor: pointer; 
+        font-weight: bold; 
+        font-size: 20px; 
+        padding: 0 5px; 
+        user-select: none; 
+        line-height: 1;
+    }
+
+    .remove-btn:hover {
+        color: #d32f2f;
+    }
+
+    /* Участник */
+    .member-row {
+        margin-bottom: 4px; 
+    }
+
+    .member-fields {
+        display: flex;
+        align-items: center;
+        height: 32px;
+        overflow: hidden;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background: #fafafa;
+        font-size: 14px;
+        line-height: 32px;
+    }
+
+    .member-number {
+        font-weight: 700;
+        color: #333;
+        min-width: 30px;
+        text-align: center;
+        font-size: 14px;
+        line-height: 32px;
+        border-right: 1px solid #eee;
+    }
+
+    .member-fields input {
+        border: none !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        font-size: 14px !important;
+        padding: 0 6px !important;
+        line-height: normal !important;
+    }
+
+    .member-fields input.member-name {
+        flex: 2;
+    }
+
+    .member-fields input.member-phone {
+        flex: 1.5;
+        border-left: 1px solid #eee !important;
+    }
+
+    .member-fields input:focus {
+        background: #fff !important;
+    }
+
+    .member-fields .remove-btn {
+        color: #f44336;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 18px;
+        padding: 0 8px;
+        user-select: none;
+        line-height: 32px;
+        border-left: 1px solid #eee;
+    }
+
+    .member-fields .remove-btn:hover {
+        background: #ffebee;
+    }
+
+    /* Старший группы */
+    .senior-fields {
+        border-color: #90a4ae !important;
+        background: #eceff1 !important;
+    }
+
+    .senior-fields .member-number {
+        color: #546e7a !important;
+        border-right: 1px solid #cfd8dc;
+    }
+
+    .senior-fields input {
+        flex: 1 !important;
+        border: none !important;
+        background: transparent !important;
+    }
+
+    .senior-fields input:focus {
+        background: #fff !important;
+    }
+
+    /* Подсказка — как в опроснике */
+    .hint { 
+        font-size: 12px; 
+        color: #2e7d32; 
+        margin-bottom: 4px; 
+        display: block; 
+        line-height: 1.3; 
+        background: #f1f8e9; 
+        padding: 4px 10px; 
+        border-left: 3px solid #4caf50; 
+    }
+
+    /* Ссылка удаления задачи */
+    .task-remove-link {
+        color: #f44336;
+        font-size: 13px;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+    .task-remove-link:hover {
+        color: #d32f2f;
+    }
+</style>
+
+</head>
+<body oninput="syncEverything()">
+
+    <h2>Карточка группы НА ПСР</h2>
+
+    <!-- ШТАБ -->
+    <div class="section-block open" id="section-staff">
+        <div class="section-header" onclick="toggleSection('staff')">
+            <span>ДАННЫЕ ШТАБА</span>
+            <span class="section-toggle">▼</span>
+        </div>
+        <div class="section-content">
+            <div class="field-group">
+                <label>Координаты:</label>
+                <div style="display: flex; height: 32px; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: #fafafa;">
+                    <input type="text" id="f_staff_lat" class="q-field" 
+                           placeholder="54.000000" 
+                           style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent; border-right: 1px solid #eee;">
+                    
+                    <input type="text" id="f_staff_lon" class="q-field" 
+                           placeholder="82.000000" 
+                           style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent;">
+                </div>
+            </div>
+            
+            <div class="field-group">
+                <label>Номер телефона, частота радиосвязи:</label>
+                <div style="display: flex; height: 33px; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: #fafafa;">
+                    <input type="text" id="f_staff_num" class="q-field" 
+                           placeholder="88009000000" 
+                           style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent; border-right: 1px solid #eee;">
+                    
+                    <input type="text" id="f_staff_freq" class="q-field" 
+                           placeholder="145.700" 
+                           style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent;">
+                </div>
+            </div>
+            
+            <div class="field-group">
+                <label>Линейный ориентир и аварийный азимут на него:</label>
+                <div style="display: flex; height: 33px; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: #fafafa;">
+                    <input type="text" id="f_staff_orient" class="q-field" 
+                           placeholder="Автодорога..." 
+                           style="flex: 1.5; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent; border-right: 1px solid #eee;">
+                    
+                    <input type="text" id="f_staff_azimuth" class="q-field" 
+                           placeholder="180 градусов" 
+                           style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ВВОДНЫЕ ПО ПОИСКУ -->
+    <div class="section-block open" id="section-info">
+        <div class="section-header" onclick="toggleSection('info')">
+            <span>ВВОДНЫЕ ПО ПОИСКУ</span>
+            <span class="section-toggle">▼</span>
+        </div>
+        <div class="section-content">
+            <div class="field-group">
+                <label>ФИО пропавшего (БВП):</label>
+                <input type="text" id="f_info_fio" class="q-field" placeholder="Иванов Иван Иванович">
+            </div>
+            
+            <div class="field-group">
+                <label>Домашнее имя (для отклика):</label>
+                <input type="text" id="f_info_home_name" class="q-field" placeholder="Кличка, имя, к которому привык">
+            </div>
+            
+            <div class="field-group">
+                <label>Особенности внешности и поведения:</label>
+                <textarea id="f_info_appearance" class="q-field" placeholder="Особые приметы, одежда, поведение" oninput="autoGrow(this)"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- ЗАДАЧИ -->
+    <div id="tasks-container">
+        <!-- Задачи добавятся при загрузке -->
+    </div>
+
+    <a class="add-field-btn" onclick="addTask()">[+] ДОБАВИТЬ ЗАДАЧУ</a>
+
+<script>
+    var STORAGE_KEY = 'survey_cache_npcr_v2'; 
+    var SOURCE_ID = 'npcr'; 
+    var taskCounter = 0;
+
+    // Переключение секций
+    function toggleSection(section) {
+        var block = document.getElementById('section-' + section);
+        block.classList.toggle('open');
+        saveLocal();
+        sendHeight();
+    }
+
+    // Удалить задачу
+    function removeTask(e, taskId) {
+        e.stopPropagation();
+        if (!confirm('Удалить эту задачу?')) return;
+        
+        var taskBlock = document.getElementById('section-' + taskId);
+        taskBlock.remove();
+        
+        // Перенумеровать оставшиеся задачи
+        var tasks = document.querySelectorAll('#tasks-container .section-block');
+        tasks.forEach(function(t, idx) {
+            var num = idx + 1;
+            t.querySelector('.section-header span:first-child').textContent = 'ЗАДАЧА ' + num;
+            
+            // Обновить видимость крестика
+            var removeBtn = t.querySelector('.task-remove');
+            if (removeBtn) {
+                removeBtn.style.display = num === 1 ? 'none' : 'inline';
+            }
+        });
+        
+        sendHeight();
+        syncEverything();
+    }
+
+    // Добавить задачу
+    function addTask(taskData) {
+        var container = document.getElementById('tasks-container');
+        taskCounter++;
+        var taskId = 'task_' + taskCounter;
+        
+        var taskDiv = document.createElement('div');
+        taskDiv.className = 'section-block open';
+        taskDiv.id = 'section-' + taskId;
+        taskDiv.setAttribute('data-task-id', taskId);
+        
+        var taskNum = container.querySelectorAll('.section-block').length + 1;
+        var isFirst = taskNum === 1;
+        
+        taskDiv.innerHTML = 
+            '<div class="section-header" onclick="toggleSection(\'' + taskId + '\')">' +
+                '<span>ЗАДАЧА ' + taskNum + '</span>' +
+                '<span class="section-toggle">▼</span>' +
+            '</div>' +
+            '<div class="section-content">' +
+                '<div class="field-group">' +
+                    '<label>Позывной группы:</label>' +
+                    '<input type="text" class="q-field task-callsign" placeholder="Лиса/ветер/автоном/К9 + номер" value="' + (taskData ? (taskData.callsign || '') : '') + '">' +
+                '</div>' +
+                '<div class="field-group">' +
+                    '<label>Краткая формулировка:</label>' +
+                    '<textarea class="q-field task-desc" placeholder="Опрос/оклейка/патруль/осмотр/отклик/прочес... + область" oninput="autoGrow(this)">' + (taskData ? (taskData.desc || '') : '') + '</textarea>' +
+                '</div>' +
+                '<div class="field-group" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc;">' +
+                    '<label>Состав группы:</label>' +
+                    '<div class="members-container" id="members-' + taskId + '"></div>' +
+                    '<div style="display: flex; justify-content: space-between; align-items: center;">' +
+                        '<a class="add-field-btn" onclick="addMemberToTask(\'' + taskId + '\')">[+] ДОБАВИТЬ участника</a>' +
+                        (!isFirst ? '<a class="task-remove-link" onclick="removeTask(event, \'' + taskId + '\')">Удалить задачу</a>' : '') +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        
+        container.appendChild(taskDiv);
+        
+        // Добавить участников
+        var membersContainer = taskDiv.querySelector('.members-container');
+        
+        // Проверяем: если есть данные о участниках в taskData - загружаем их
+        var hasMembersData = taskData && taskData.members && Array.isArray(taskData.members);
+        
+        if (hasMembersData) {
+            // Старший
+            addMemberToTask(taskId, taskData.senior || '', '', true);
+            // Остальные
+            taskData.members.forEach(function(m) {
+                addMemberToTask(taskId, m.name || '', m.phone || '', false);
+            });
+        } else {
+            // По умолчанию: старший + 1 участник
+            addMemberToTask(taskId, '', '', true);
+            addMemberToTask(taskId, '', '', false);
+        }
+        
+        // События на поля задачи
+        taskDiv.querySelectorAll('input, textarea').forEach(function(input) {
+            input.addEventListener('input', syncEverything);
+        });
+        
+        sendHeight();
+        syncEverything();
+    }
+
+    // Добавить участника в задачу
+    function addMemberToTask(taskId, name, phone, isSenior) {
+        var container = document.getElementById('members-' + taskId);
+        if (!container) return;
+        
+        var count = container.querySelectorAll('.member-row:not(.senior)').length;
+        var isFirstSenior = !container.querySelector('.senior');
+        
+        var div;
+        
+        if (isSenior && isFirstSenior) {
+            // Старший группы
+            div = document.createElement('div');
+            div.className = 'member-row senior';
+            div.innerHTML = 
+                '<div class="member-fields senior-fields">' +
+                    '<span class="member-number">1.</span>' +
+                    '<input type="text" class="q-field member-senior" placeholder="Старший группы" value="' + (name || '') + '">' +
+                    '<span class="remove-btn" onclick="removeMember(this)">×</span>' +
+                '</div>';
+        } else {
+            // Остальные участники
+            div = document.createElement('div');
+            div.className = 'member-row';
+            div.innerHTML = 
+                '<div class="member-fields">' +
+                    '<span class="member-number">' + (count + 2) + '.</span>' +
+                    '<input type="text" class="q-field member-name" placeholder="ФИО" value="' + (name || '') + '">' +
+                    '<input type="text" class="q-field member-phone" placeholder="88009000000" value="' + (phone || '') + '">' +
+                    '<span class="remove-btn" onclick="removeMember(this)">×</span>' +
+                '</div>';
+        }
+        
+        container.appendChild(div);
+        
+        // События
+        div.querySelectorAll('input').forEach(function(input) {
+            input.addEventListener('input', syncEverything);
+        });
+        
+        // Перенумеровать
+        renumberMembers(container);
+        
+        // Сразу сохранить
+        saveLocal();
+        sendHeight();
+    }
+
+    // Перенумеровать участников
+    function renumberMembers(container) {
+        var number = 2;
+        container.querySelectorAll('.member-row:not(.senior)').forEach(function(r) {
+            var numEl = r.querySelector('.member-number');
+            if (numEl) numEl.textContent = number + '.';
+            number++;
+        });
+    }
+        
+    // Удалить участника
+    function removeMember(btn) {
+        var row = btn.closest('.member-row');
+        var container = row.closest('.members-container');
+        var taskId = container.id.replace('members-', '');
+        
+        if (row.classList.contains('senior')) {
+            row.remove();
+            // Добавить нового старшего
+            addMemberToTask(taskId, '', '', true);
+        } else {
+            row.remove();
+        }
+        
+        // Перенумеровать
+        var number = 2;
+        container.querySelectorAll('.member-row:not(.senior)').forEach(function(r) {
+            var numEl = r.querySelector('.member-number');
+            if (numEl) numEl.textContent = number + '.';
+            number++;
+        });
+        
+        sendHeight();
+        syncEverything();
+    }
+
+    // Синхронизация
+    var syncTimer;
+    function syncEverything() {
+        clearTimeout(syncTimer);
+        syncTimer = setTimeout(function() {
+            var payload = [];
+            
+            // ШТАБ
+            var staffLat = document.getElementById('f_staff_lat').value.trim();
+            var staffLon = document.getElementById('f_staff_lon').value.trim();
+            var staffCoords = (staffLat && staffLon) ? staffLat + ', ' + staffLon : (staffLat || staffLon);
+            var staffNum = document.getElementById('f_staff_num').value.trim();
+            var staffFreq = document.getElementById('f_staff_freq').value.trim();
+            var staffOrient = document.getElementById('f_staff_orient').value.trim();
+            var staffAzimuth = document.getElementById('f_staff_azimuth').value.trim();
+            
+            if (staffCoords || staffNum || staffFreq || staffOrient || staffAzimuth) {
+                payload.push({ label: 'ДАННЫЕ ШТАБА', value: '', isHeader: true });
+                if (staffCoords) payload.push({ label: 'Координаты', value: staffCoords });
+                if (staffNum) payload.push({ label: 'Номер штаба', value: staffNum });
+                if (staffFreq) payload.push({ label: 'Частота связи', value: staffFreq });
+                if (staffOrient && staffAzimuth) {
+                    payload.push({ label: 'Аварийный азимут', value: staffOrient + ' — ' + staffAzimuth });
+                } else if (staffAzimuth) {
+                    payload.push({ label: 'Аварийный азимут', value: staffAzimuth });
+                } else if (staffOrient) {
+                    payload.push({ label: 'Аварийный ориентир', value: staffOrient });
+                }
+            }
+            
+            // ВВОДНЫЕ ПО ПОИСКУ
+            var infoFio = document.getElementById('f_info_fio').value.trim();
+            var infoHomeName = document.getElementById('f_info_home_name').value.trim();
+            var infoAppearance = document.getElementById('f_info_appearance').value.trim();
+            
+            if (infoFio || infoHomeName || infoAppearance) {
+                payload.push({ label: 'ВВОДНЫЕ ПО ПОИСКУ', value: '', isHeader: true });
+                if (infoFio) payload.push({ label: 'ФИО БВП', value: infoFio });
+                if (infoHomeName) payload.push({ label: 'Домашнее имя', value: infoHomeName });
+                if (infoAppearance) payload.push({ label: 'Особенности', value: infoAppearance });
+            }
+            
+            // ЗАДАЧИ
+            document.querySelectorAll('#tasks-container .section-block').forEach(function(taskBlock, idx) {
+                var taskNum = idx + 1;
+                var callsign = taskBlock.querySelector('.task-callsign').value.trim();
+                var desc = taskBlock.querySelector('.task-desc').value.trim();
+                var membersContainer = taskBlock.querySelector('.members-container');
+                
+                var seniorEl = membersContainer.querySelector('.member-row.senior .member-senior');
+                var seniorVal = seniorEl ? seniorEl.value.trim() : '';
+                
+                var members = [];
+                membersContainer.querySelectorAll('.member-row:not(.senior)').forEach(function(row) {
+                    var name = row.querySelector('.member-name').value.trim();
+                    var phone = row.querySelector('.member-phone').value.trim();
+                    if (name || phone) {
+                        members.push({ name: name, phone: phone });
+                    }
+                });
+                
+                if (callsign || desc || seniorVal || members.length > 0) {
+                    payload.push({ label: 'ЗАДАЧА ' + taskNum, value: '', isHeader: true });
+                    if (callsign) payload.push({ label: 'Позывной', value: callsign });
+                    if (desc) payload.push({ label: 'Задача', value: desc });
+                    if (seniorVal || members.length > 0) {
+                        payload.push({ label: 'Группа', value: '', isHeader: true });
+                        if (seniorVal) payload.push({ label: '', value: '1. ' + seniorVal });
+                        members.forEach(function(m, i) {
+                            var line = (i + 2) + '. ' + m.name;
+                            if (m.phone) line += ' ' + m.phone;
+                            payload.push({ label: '', value: line });
+                        });
+                    }
+                }
+            });
+            
+            window.parent.postMessage({ 
+                type: 'survey_update', 
+                source: SOURCE_ID, 
+                payload: payload 
+            }, '*');
+
+            saveLocal();
+            sendHeight();
+        }, 150);
+    }
+
+    // Сохранение в localStorage
+    function saveLocal() {
+        var tasks = [];
+        
+        document.querySelectorAll('#tasks-container .section-block').forEach(function(taskBlock) {
+            var taskId = taskBlock.getAttribute('data-task-id');
+            var membersContainer = taskBlock.querySelector('.members-container');
+            
+            var seniorEl = membersContainer.querySelector('.member-row.senior .member-senior');
+            
+            var members = [];
+            membersContainer.querySelectorAll('.member-row:not(.senior)').forEach(function(row) {
+                members.push({
+                    name: row.querySelector('.member-name').value,
+                    phone: row.querySelector('.member-phone').value
+                });
+            });
+            
+            tasks.push({
+                callsign: taskBlock.querySelector('.task-callsign').value,
+                desc: taskBlock.querySelector('.task-desc').value,
+                senior: seniorEl ? seniorEl.value : '',
+                members: members,
+                open: taskBlock.classList.contains('open')
+            });
+        });
+        
+        var sections = {};
+        document.querySelectorAll('.section-block').forEach(function(block) {
+            var name = block.id.replace('section-', '');
+            sections[name] = block.classList.contains('open');
+        });
+        
+        var data = {
+            staff: {
+                lat: document.getElementById('f_staff_lat').value,
+                lon: document.getElementById('f_staff_lon').value,
+                num: document.getElementById('f_staff_num').value,
+                freq: document.getElementById('f_staff_freq').value,
+                azimuth: document.getElementById('f_staff_azimuth').value,
+                orient: document.getElementById('f_staff_orient').value
+            },
+            info: {
+                fio: document.getElementById('f_info_fio').value,
+                home_name: document.getElementById('f_info_home_name').value,
+                appearance: document.getElementById('f_info_appearance').value
+            },
+            tasks: tasks,
+            sections: sections
+        };
+        
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    // Загрузка из localStorage
+    function loadLocal() {
+        // Пробуем новую версию, потом старую
+        var raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+            raw = localStorage.getItem('survey_cache_npcr_v1');
+        }
+        
+        if (!raw) {
+            // По умолчанию 1 задача
+            addTask(null);
+            return;
+        }
+        
+        try {
+            var data = JSON.parse(raw);
+            
+            // ШТАБ
+            if (data.staff) {
+                document.getElementById('f_staff_lat').value = data.staff.lat || '';
+                document.getElementById('f_staff_lon').value = data.staff.lon || '';
+                document.getElementById('f_staff_num').value = data.staff.num || '';
+                document.getElementById('f_staff_freq').value = data.staff.freq || '';
+                document.getElementById('f_staff_orient').value = data.staff.orient || '';
+                document.getElementById('f_staff_azimuth').value = data.staff.azimuth || '';
+            }
+            
+            // ВВОДНЫЕ ПО ПОИСКУ
+            if (data.info) {
+                document.getElementById('f_info_fio').value = data.info.fio || '';
+                document.getElementById('f_info_home_name').value = data.info.home_name || '';
+                document.getElementById('f_info_appearance').value = data.info.appearance || '';
+            }
+            
+            // Штаб - состояние
+            var staffBlock = document.getElementById('section-staff');
+            if (data.sections && data.sections.staff === false) {
+                staffBlock.classList.remove('open');
+            }
+            
+            // Вводные - состояние
+            var infoBlock = document.getElementById('section-info');
+            if (data.sections && data.sections.info === false) {
+                infoBlock.classList.remove('open');
+            }
+            
+            // ЗАДАЧИ
+            if (data.tasks && data.tasks.length > 0) {
+                data.tasks.forEach(function(t) {
+                    addTask(t);
+                });
+                
+                // Восстановить состояние задач после добавления
+                if (data.sections) {
+                    data.tasks.forEach(function(t, idx) {
+                        var taskBlock = document.querySelector('#tasks-container .section-block:nth-child(' + (idx + 1) + ')');
+                        if (taskBlock && t.open === false) {
+                            taskBlock.classList.remove('open');
+                        }
+                    });
+                }
+            } else {
+                addTask(null);
+            }
+            
+        } catch(e) {
+            console.error('Ошибка загрузки:', e);
+            addTask(null);
+        }
+    }
+
+    // Отправка высоты
+    function sendHeight() {
+        var height = document.documentElement.offsetHeight || document.body.scrollHeight;
+        window.parent.postMessage({ type: 'set_height', height: height }, '*');
+    }
+
+    // Auto-grow для textarea
+    function autoGrow(el) {
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+    }
+
+    // Инициализация
+    window.onload = function() {
+        loadLocal();
+        autoGrow(document.getElementById('f_info_appearance'));
+        syncEverything();
+        sendHeight();
+    };
+</script>
+</body>
+</html>

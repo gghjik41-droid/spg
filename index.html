@@ -15,9 +15,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Опросники">
 
-    <!-- <script data-goatcounter="https://gghjik41.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script> -->
-
-	<style>
+    <style>
 			/* БЛОКИРОВКА ГОРИЗОНТАЛЬНОГО СКРОЛЛА И ЗУМА */
 			html {
 				/* Запрещаем прокрутку вбок на корню */
@@ -96,7 +94,7 @@
 				padding: 5px; 
 				padding-right: 20px; 
 				/* Опускаем контент под фиксированную шапку (48px + запас на env) */
-				margin-top: calc(48px + env(safe-area-inset-top, 0px)); 
+				margin-top: calc(43px + env(safe-area-inset-top, 0px)); 
 				gap: 10px; 
 				box-sizing: border-box; 
 				align-items: flex-start;
@@ -330,7 +328,7 @@
     </div>
 
     <div style="display: flex; gap: 5px; justify-content: center;">
-        <button class="nav-btn active" onclick="openSurvey('111111.html', this)">111111</button>
+        <button class="nav-btn active" onclick="openSurvey('npcr.html', this)">НА ПСР</button>
         <button class="nav-btn" onclick="openSurvey('222222.html', this)">222222</button>
         <button class="nav-btn" onclick="openSurvey('333333.html', this)">333333</button>
         <button class="nav-btn" onclick="openSurvey('444444.html', this)">444444</button>
@@ -346,16 +344,7 @@
 
 <div class="main-wrapper">
     <div class="form-side">
-        <div class="sticky-header" id="master-sticky">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                <label style="font-weight: bold; text-decoration: underline; font-size: 13px; color: #37474f;">ЗАЯВКА</label>
-                <button id="z_edit_btn" onclick="editZ()" style="display: none; background: #90a4ae; color: white; border: none; border-radius: 4px; padding: 2px 8px; font-size: 10px; cursor: pointer;">ИЗМЕНИТЬ</button>
-            </div>
-            <textarea id="z_text" placeholder="Вставьте текст заявки..."></textarea>
-            <div id="z_fixed"><div id="z_value"></div></div>
-            <button id="z_confirm_btn" class="btn-ok" onclick="fixZ()">ОК</button>
-        </div>
-        <iframe src="111111.html?v=21" id="survey-frame" scrolling="no"></iframe>
+        <iframe src="npcr.html?v=1" id="survey-frame" scrolling="no"></iframe>
     </div>
 
     <div class="result-side">
@@ -369,12 +358,12 @@
 
 <script>
     // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
-    var ORDER = ['111111', '222222', '333333', '444444', '555555']; 
+    var ORDER = ['npcr', '222222', '333333', '444444', '555555'];
     var globalZData = localStorage.getItem('pso_z_main') || "";
     var globalCallsignData = localStorage.getItem('pso_global_callsign_data') || ""; 
     var globalFields = JSON.parse(localStorage.getItem('pso_global_fields') || "{}"); 
 
-    var currentSource = localStorage.getItem('last_survey_file') ? localStorage.getItem('last_survey_file').replace('.html', '') : '111111';
+    var currentSource = localStorage.getItem('last_survey_file') ? localStorage.getItem('last_survey_file').replace('.html', '') : 'npcr';
     var scrollTimeout;
 
     /**
@@ -440,10 +429,10 @@
         
         valDiv.innerText = flatText; 
 
-        document.getElementById('z_text').style.display = 'none';
-        document.getElementById('z_confirm_btn').style.display = 'none';
-        document.getElementById('z_fixed').style.display = 'block';
-        document.getElementById('z_edit_btn').style.display = 'block';
+        if(document.getElementById('z_text')) document.getElementById('z_text').style.display = 'none';
+        if(document.getElementById('z_confirm_btn')) document.getElementById('z_confirm_btn').style.display = 'none';
+        if(document.getElementById('z_fixed')) document.getElementById('z_fixed').style.display = 'block';
+        if(document.getElementById('z_edit_btn')) document.getElementById('z_edit_btn').style.display = 'block';
         
         setTimeout(adjustFrameOffset, 30);
     }
@@ -453,11 +442,12 @@
      */
     function editZ() {
         var zInput = document.getElementById('z_text');
+        if(!zInput) return;
         zInput.value = globalZData;
         zInput.style.display = 'block';
-        document.getElementById('z_confirm_btn').style.display = 'block';
-        document.getElementById('z_fixed').style.display = 'none';
-        document.getElementById('z_edit_btn').style.display = 'none';
+        if(document.getElementById('z_confirm_btn')) document.getElementById('z_confirm_btn').style.display = 'block';
+        if(document.getElementById('z_fixed')) document.getElementById('z_fixed').style.display = 'none';
+        if(document.getElementById('z_edit_btn')) document.getElementById('z_edit_btn').style.display = 'none';
         setTimeout(adjustFrameOffset, 30);
     }
 
@@ -479,8 +469,6 @@
         if (!frame) return;
         
         // НЕ показываем лоадер при переключении
-        <!-- toggleLoader(true); -->
-
         currentSource = fileName.replace('.html', '');
         frame.src = fileName;
         var navBtns = document.querySelectorAll('.nav-btn');
@@ -597,9 +585,9 @@
     });
 
     /**
-     * Копирование.
+     * Копирование (современный API).
      */
-    function copyText() {
+    async function copyText() {
         var out = document.getElementById('output');
         if (!out || out.innerText.indexOf('Результат опроса') === 0) return;
 
@@ -614,13 +602,40 @@
             }
         });
 
+        var textToCopy = finalString.trim();
+
+        // Пробуем современный API
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                await navigator.clipboard.writeText(textToCopy);
+                showCopySuccess();
+                return;
+            } catch (err) {
+                console.log('Clipboard API не сработал:', err);
+            }
+        }
+
+        // Fallback для старых браузеров
+        fallbackCopy(textToCopy);
+        showCopySuccess();
+    }
+
+    function fallbackCopy(text) {
         var tempArea = document.createElement('textarea');
-        tempArea.value = finalString.trim();
+        tempArea.value = text;
+        tempArea.style.position = 'fixed';
+        tempArea.style.left = '-9999px';
         document.body.appendChild(tempArea);
         tempArea.select();
-        document.execCommand('copy');
+        try {
+            document.execCommand('copy');
+        } catch (err) {
+            console.error('Fallback copy не сработал:', err);
+        }
         document.body.removeChild(tempArea);
+    }
 
+    function showCopySuccess() {
         var btn = document.getElementById('copy-btn');
         if (btn) {
             var oldContent = btn.innerHTML;
@@ -640,13 +655,16 @@
         var savedZ = localStorage.getItem('pso_z_main') || "";
         globalZData = savedZ;
         var zTextarea = document.getElementById('z_text');
-        zTextarea.value = savedZ;
+        if(zTextarea) zTextarea.value = savedZ;
 
+        // ЗАКОММЕНТИРОВАНО: Логика отрисовки Z при загрузке
+        /*
         if (savedZ.trim() === "") { 
             editZ(); 
         } else { 
             renderZ(savedZ); 
         }
+        */
 
         if (zTextarea) {
             const ro = new ResizeObserver(function() {
@@ -675,7 +693,7 @@
         }
         globalCallsignData = savedCall;
 
-        var lastFile = localStorage.getItem('last_survey_file') || '111111.html';
+        var lastFile = localStorage.getItem('last_survey_file') || 'npcr.html';
         var buttons = document.querySelectorAll('.nav-btn');
         var found = false;
         buttons.forEach(function(btn) {
@@ -684,7 +702,7 @@
                 found = true;
             }
         });
-        if(!found && buttons.length > 0) openSurvey('111111.html', buttons[0]);
+        if(!found && buttons.length > 0) openSurvey('npcr.html', buttons[0]);
 
         updateFinalOutput();
         setTimeout(adjustFrameOffset, 150);
