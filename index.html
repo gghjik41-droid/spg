@@ -322,7 +322,9 @@
 </div>
 
 <div class="header-nav" id="menu">
-    <div style="display: flex; gap: 5px; justify-self: start;">
+    <div style="display: flex; gap: 5px; justify-self: start; align-items: center;">
+        <span id="online-status" style="display: none; width: 10px; height: 10px; border-radius: 50%; background: #4caf50; flex-shrink: 0;" title="Онлайн"></span>
+        <span id="offline-status" style="display: none; width: 10px; height: 10px; border-radius: 50%; background: #f44336; flex-shrink: 0;" title="Офлайн"></span>
         <button class="clear-btn" onclick="clearAllData()" title="Полная очистка">✕</button>
         <button class="pin-btn active" id="master-pin-btn" onclick="togglePin()" title="Закрепить/открепить шапку заявки">📌</button>
     </div>
@@ -726,9 +728,26 @@
         updateFinalOutput();
         setTimeout(adjustFrameOffset, 150);
 
-        // Убираем лоадер после завершения всей логики загрузки
+    // Убираем лоадер после завершения всей логики загрузки
         setTimeout(() => toggleLoader(false), 500);
+        
+        // Индикатор онлайн/офлайн
+        updateOnlineStatus();
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
     };
+
+    function updateOnlineStatus() {
+        var onlineEl = document.getElementById('online-status');
+        var offlineEl = document.getElementById('offline-status');
+        if (navigator.onLine) {
+            if (onlineEl) onlineEl.style.display = 'block';
+            if (offlineEl) offlineEl.style.display = 'none';
+        } else {
+            if (onlineEl) onlineEl.style.display = 'none';
+            if (offlineEl) offlineEl.style.display = 'block';
+        }
+    }
 
     window.addEventListener('resize', adjustFrameOffset);
 

@@ -1,16 +1,23 @@
-const CACHE_NAME = 'pso-stable';
+// Меняй это число при каждом обновлении, чтобы сбросить кэш
+const CACHE_VERSION = 11;
+const CACHE_NAME = 'pso-v' + CACHE_VERSION;
 
 // Список файлов для оффлайн-режима
 const filesToCache = [
   './',
   './index.html',
-  './111111.html',
+  './npcr.html',
+  './molitva.html',
+  './pamyatki.html',
+  './opros.html',
+  './common.css',
   './222222.html',
   './333333.html',
   './444444.html',
   './555555.html',
   './manifest.json',
-  './favicon.png'
+  './favicon.png',
+  './sw.js'
 ];
 
 // 1. Установка: сохраняем базу в кэш
