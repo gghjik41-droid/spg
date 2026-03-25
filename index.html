@@ -331,7 +331,7 @@
         <button class="nav-btn active" onclick="openSurvey('npcr.html', this)">НА ПСР</button>
         <button class="nav-btn" onclick="openSurvey('molitva.html', this)">МОЛИТВА</button>
         <button class="nav-btn" onclick="openSurvey('pamyatki.html', this)">ПАМЯТКИ</button>
-        <button class="nav-btn" onclick="openSurvey('vopros.html', this)">ВОПРОС</button>
+        <button class="nav-btn" onclick="openSurvey('opros.html', this)">ОПРОС</button>
         <!-- <button class="nav-btn" onclick="openSurvey('222222.html', this)">222222</button> -->
     </div>
 
@@ -358,7 +358,7 @@
 
 <script>
     // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
-    var ORDER = ['npcr', 'molitva', 'pamyatki', 'vopros', '222222', '333333', '444444', '555555'];
+    var ORDER = ['npcr', 'molitva', 'pamyatki', 'opros', '222222', '333333', '444444', '555555'];
     var globalZData = localStorage.getItem('pso_z_main') || "";
     var globalCallsignData = localStorage.getItem('pso_global_callsign_data') || ""; 
     var globalFields = JSON.parse(localStorage.getItem('pso_global_fields') || "{}"); 

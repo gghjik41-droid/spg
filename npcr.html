@@ -173,6 +173,12 @@
         // Проверяем: если есть данные о участниках в taskData - загружаем их
         var hasMembersData = taskData && taskData.members && Array.isArray(taskData.members);
         
+        // Получаем старшего из localStorage если не первой задачи и нет данных
+        var defaultSenior = '';
+        if (!isFirst && !hasMembersData) {
+            defaultSenior = localStorage.getItem('pso_senior_callsign') || '';
+        }
+        
         if (hasMembersData) {
             // Старший
             addMemberToTask(taskId, taskData.senior || '', '', true);
@@ -182,7 +188,7 @@
             });
         } else {
             // По умолчанию: старший + 1 участник
-            addMemberToTask(taskId, '', '', true);
+            addMemberToTask(taskId, defaultSenior, '', true);
             addMemberToTask(taskId, '', '', false);
         }
         
@@ -212,7 +218,7 @@
             div.innerHTML = 
                 '<div class="member-fields senior-fields">' +
                     '<span class="member-number">1.</span>' +
-                    '<input type="text" class="q-field member-senior" placeholder="Старший группы" value="' + (name || '') + '">' +
+                    '<input type="text" id="z_call_name" class="q-field member-senior" placeholder="Старший группы" value="' + (name || '') + '">' +
                     '<span class="remove-btn" onclick="removeMember(this)">×</span>' +
                 '</div>';
         } else {
@@ -232,7 +238,15 @@
         
         // События
         div.querySelectorAll('input').forEach(function(input) {
-            input.addEventListener('input', syncEverything);
+            input.addEventListener('input', function() {
+                // Если это старший первой задачи - синхронизируем
+                if (isSenior && isFirstSenior) {
+                    var val = this.value.trim();
+                    localStorage.setItem('pso_senior_callsign', val);
+                    window.parent.postMessage({ type: 'sync_field', fieldId: 'z_call_name', value: val }, '*');
+                }
+                syncEverything();
+            });
         });
         
         // Перенумеровать
@@ -242,6 +256,13 @@
         saveLocal();
         sendHeight();
     }
+
+    // Слушатель для синхронизации извне (не используем для z_call_name, чтобы ОПРОС не менял НА ПСР)
+    window.addEventListener('message', function(event) {
+        if (event.data.type === 'set_global_data' && event.data.fields) {
+            // Здесь можно добавить синхронизацию других общих полей, если появятся
+        }
+    });
 
     // Перенумеровать участников
     function renumberMembers(container) {
@@ -318,7 +339,7 @@
                 payload.push({ label: 'ВВОДНЫЕ ПО ПОИСКУ', value: '', isHeader: true });
                 if (infoFio) payload.push({ label: 'ФИО БВП', value: infoFio });
                 if (infoHomeName) payload.push({ label: 'Домашнее имя', value: infoHomeName });
-                if (infoAppearance) payload.push({ label: 'Особенности', value: infoAppearance });
+                if (infoAppearance) payload.push({ label: 'Приметы', value: infoAppearance });
             }
             
             // ЗАДАЧИ
@@ -345,7 +366,6 @@
                     if (callsign) payload.push({ label: 'Позывной', value: callsign });
                     if (desc) payload.push({ label: 'Задача', value: desc });
                     if (seniorVal || members.length > 0) {
-                        payload.push({ label: 'Группа', value: '', isHeader: true });
                         if (seniorVal) payload.push({ label: '', value: '1. ' + seniorVal });
                         members.forEach(function(m, i) {
                             var line = (i + 2) + '. ' + m.name;
@@ -361,6 +381,19 @@
                 source: SOURCE_ID, 
                 payload: payload 
             }, '*');
+
+            // Сохраняем старшего из задачи 1 для синхронизации
+            var firstTaskSenior = '';
+            var firstTaskContainer = document.querySelector('#tasks-container .section-block');
+            if (firstTaskContainer) {
+                var seniorEl = firstTaskContainer.querySelector('.member-row.senior .member-senior');
+                if (seniorEl) firstTaskSenior = seniorEl.value.trim();
+            }
+            console.log('NPCR: Сохраняем старшего:', firstTaskSenior);
+            if (firstTaskSenior) {
+                localStorage.setItem('pso_senior_callsign', firstTaskSenior);
+                console.log('NPCR: Старший сохранён в localStorage');
+            }
 
             saveLocal();
             sendHeight();
