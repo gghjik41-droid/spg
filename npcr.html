@@ -842,6 +842,12 @@
                 infoBlock.classList.remove('open');
             }
             
+            // Ориентировка - состояние
+            var orientBlock = document.getElementById('section-orient');
+            if (data.sections && data.sections.orient === false) {
+                orientBlock.classList.remove('open');
+            }
+            
             // ОРИЕНТИРОВКА
             if (data.orientImages && Array.isArray(data.orientImages)) {
                 orientImages = data.orientImages;

@@ -202,11 +202,39 @@
     </div>
 
 <script>
+    var STORAGE_KEY = 'survey_cache_pamyatki';
+
     // Переключение секций
     function toggleSection(section) {
         var block = document.getElementById('section-' + section);
         block.classList.toggle('open');
+        saveSections();
         sendHeight();
+    }
+
+    // Сохранить состояние секций
+    function saveSections() {
+        var sections = {};
+        document.querySelectorAll('.section-block').forEach(function(block) {
+            var name = block.id.replace('section-', '');
+            sections[name] = block.classList.contains('open');
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(sections));
+    }
+
+    // Загрузить состояние секций
+    function loadSections() {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        try {
+            var sections = JSON.parse(raw);
+            document.querySelectorAll('.section-block').forEach(function(block) {
+                var name = block.id.replace('section-', '');
+                if (sections[name] === false) {
+                    block.classList.remove('open');
+                }
+            });
+        } catch(e) {}
     }
 
     // Отправка высоты
@@ -222,6 +250,7 @@
 
     // Инициализация
     window.onload = function() {
+        loadSections();
         hideResult();
         sendHeight();
     };
