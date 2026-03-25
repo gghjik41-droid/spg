@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Визуальный анализ стилей</title>
+    <link rel="stylesheet" href="common.css">
+    <style>
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            padding: 20px; 
+            background: #f5f5f5; 
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 { color: #333; margin-bottom: 30px; }
+        
+        .section { margin-bottom: 40px; }
+        .section-title { 
+            font-size: 18px; 
+            font-weight: bold; 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin-bottom: 20px;
+            background: #333;
+            color: white;
+        }
+        
+        .style-demo { 
+            margin-bottom: 25px; 
+            padding: 15px; 
+            background: white; 
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .style-name { 
+            font-family: monospace; 
+            font-size: 14px; 
+            color: #2196f3; 
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .hint-block {
+            font-size: 11px;
+            color: #888;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Визуальный анализ стилей common.css</h1>
+
+    <div class="section">
+        <div class="section-title">🔵 БАЗОВЫЕ СТИЛИ</div>
+
+        <div class="style-demo">
+            <div class="style-name">body</div>
+            <div>Основной шрифт и отступы страницы</div>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">h2</div>
+            <h2 style="margin: 0 0 15px 0; color: #211e1e; border-bottom: 2px solid #3b3535; padding-bottom: 8px; font-size: 18px; text-transform: uppercase;">ЗАГОЛОВОК H2</h2>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.section-block</div>
+            <div style="margin-bottom: 4px; background: #f5f5f5; padding: 10px; border-radius: 4px;">
+                Блок секции (отступ снизу 4px)
+            </div>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.section-header</div>
+            <div style="background: #f5f5f5; color: #2e7d32; padding: 8px 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; user-select: none; border: 1px solid #c8e6c9; border-radius: 4px; margin: 4px;">
+                <span>ЗАГОЛОВОК СЕКЦИИ</span>
+                <span>▼</span>
+            </div>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.section-header:hover</div>
+            <div style="background: #e8f5e9; color: #2e7d32; padding: 8px 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 12px; text-transform: uppercase; border: 1px solid #81c784; border-radius: 4px;">
+                <span>ПРИ НАВЕДЕНИИ</span>
+                <span>▼</span>
+            </div>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.section-block.open .section-header</div>
+            <div style="background: #e8f5e9; color: #2e7d32; padding: 8px 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 12px; text-transform: uppercase; border: 1px solid #4caf50; border-radius: 4px; margin: 4px;">
+                <span>ОТКРЫТАЯ СЕКЦИЯ</span>
+                <span>▼</span>
+            </div>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.section-content</div>
+            <div style="padding: 8px; background: white; display: block;">
+                Контент секции (скрыт/показан)
+            </div>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.field-group</div>
+            <div style="margin-bottom: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px;">
+                <label style="display: block; font-weight: 700; margin-bottom: 2px; font-size: 13px; color: #263238; text-decoration: underline;">Поле ввода</label>
+                <input type="text" placeholder="Пример поля" style="width: 100%; padding: 8px 10px; border: 1px solid #cfd8dc; border-radius: 6px; box-sizing: border-box; font-size: 16px; background: #fafafa;">
+            </div>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">label</div>
+            <label style="display: block; font-weight: 700; margin-bottom: 2px; font-size: 13px; color: #263238; text-decoration: underline;">Подпись поля</label>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">input, textarea, .editable-field</div>
+            <input type="text" placeholder="Обычное поле ввода" style="width: 100%; padding: 8px 10px; border: 1px solid #cfd8dc; border-radius: 6px; box-sizing: border-box; font-size: 16px; background: #fafafa; margin-bottom: 8px;">
+            <textarea placeholder="Текстовая область" style="width: 100%; padding: 8px 10px; border: 1px solid #cfd8dc; border-radius: 6px; box-sizing: border-box; font-size: 16px; background: #fafafa; min-height: 60px; resize: none;"></textarea>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">input:focus, textarea:focus, .editable-field:focus</div>
+            <input type="text" placeholder="Поле с фокусом" style="width: 100%; padding: 8px 10px; border: 1px solid #4caf50; border-radius: 6px; box-sizing: border-box; font-size: 16px; background: #fff; outline: none;">
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.hint</div>
+            <span class="hint" style="font-size: 12px; color: #2e7d32; margin-bottom: 4px; display: block; line-height: 1.3; background: #f1f8e9; padding: 4px 10px; border-left: 3px solid #4caf50;">Подсказка зеленым блоком</span>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.add-field-btn</div>
+            <a class="add-field-btn" style="font-size: 11px; color: #1976d2; cursor: pointer; text-decoration: none; display: inline-block; margin-top: 5px; font-weight: bold;">[+] ДОБАВИТЬ поле</a>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.remove-btn</div>
+            <span class="remove-btn" style="color: #f44336; cursor: pointer; font-weight: bold; font-size: 20px; padding: 0 5px; user-select: none; line-height: 1;">×</span>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.remove-btn:hover</div>
+            <span class="remove-btn" style="color: #d32f2f; cursor: pointer; font-weight: bold; font-size: 20px; padding: 0 5px; user-select: none; line-height: 1;">× при наведении</span>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title" style="background:#4caf50">🟢 NPCR (Карточка группы)</div>
+
+        <div class="style-demo">
+            <div class="style-name">.member-row</div>
+            <div class="member-row" style="margin-bottom: 8px;">
+                <div class="member-fields">
+                    <span class="member-number">1.</span>
+                    <input type="text" class="q-field member-senior" placeholder="Старший группы" value="Иванов И.И.">
+                    <span class="remove-btn">×</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.member-fields</div>
+            <div class="member-fields" style="display: flex; align-items: center; height: 38px; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: #fafafa; font-size: 16px; line-height: 38px;">
+                <span class="member-number">2.</span>
+                <input type="text" class="q-field member-name" placeholder="ФИО" value="Петров П.П." style="border: none; background: transparent; flex: 2; padding: 0 8px;">
+                <input type="text" class="q-field member-phone" placeholder="88009000000" value="+79001234567" style="border: none; background: transparent; flex: 1.5; padding: 0 8px; border-left: 1px solid #eee;">
+                <span class="remove-btn">×</span>
+            </div>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.senior-fields</div>
+            <div class="member-fields senior-fields" style="border-color: #90a4ae !important; background: #eceff1 !important;">
+                <span class="member-number" style="color: #546e7a !important;">1.</span>
+                <input type="text" class="q-field member-senior" placeholder="Старший группы" value="Сидоров С.С." style="flex: 1; border: none; background: transparent;">
+                <span class="remove-btn">×</span>
+            </div>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.task-remove-link</div>
+            <a class="task-remove-link" style="color: #f44336; font-size: 13px; cursor: pointer; text-decoration: underline;">Удалить задачу</a>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.row-fields</div>
+            <div class="row-fields" style="display: flex; gap: 10px;">
+                <div class="field-group" style="flex: 1; margin-bottom: 0;">
+                    <label>Поле 1</label>
+                    <input type="text" placeholder="Значение 1" style="padding: 6px; font-size: 14px;">
+                </div>
+                <div class="field-group" style="flex: 1; margin-bottom: 0;">
+                    <label>Поле 2</label>
+                    <input type="text" placeholder="Значение 2" style="padding: 6px; font-size: 14px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title" style="background:#ff9800">🟠 222222 (Опросник)</div>
+
+        <div class="style-demo">
+            <div class="style-name">.gender-toggle + .gender-btn</div>
+            <div class="gender-toggle" style="display: flex; height: 30px; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; width: fit-content;">
+                <button class="gender-btn active" style="border: none; background: #4caf50; color: white; cursor: pointer; padding: 0 10px; font-weight: bold; font-size: 12px;">М</button>
+                <button class="gender-btn" style="border: none; background: #eceff1; color: #546e7a; cursor: pointer; padding: 0 10px; font-weight: bold; font-size: 12px;">Ж</button>
+            </div>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.dynamic-field</div>
+            <div class="dynamic-field-wrapper" style="position: relative; margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+                <div class="dynamic-field" style="border-left: 3px dashed #1976d2 !important; background: #f9fbe7 !important; flex-grow: 1; padding: 8px; border-radius: 4px;">Динамическое поле</div>
+                <span class="remove-btn">×</span>
+            </div>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.section-title</div>
+            <div class="section-title" style="background: #ffffff; color: #333; padding: 6px 0; border-top: 3px solid #545454; border-bottom: 1px solid #eee; font-size: 15px; font-weight: bold; margin: 15px 0 0 0; display: block;">
+                ЗАГОЛОВОК СЕКЦИИ
+            </div>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.editable-field</div>
+            <div class="editable-field" contenteditable="true" style="min-height: 33px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: break-word; cursor: text; border: 1px solid #cfd8dc; border-radius: 6px; padding: 8px 10px; background: #fafafa; font-size: 16px;">
+                Редактируемое поле (contenteditable)
+            </div>
+        </div>
+
+        <div class="style-demo">
+            <div class="style-name">.editable-field:empty:before</div>
+            <div class="editable-field" contenteditable="true" style="min-height: 33px; line-height: 1.4; border: 1px solid #cfd8dc; border-radius: 6px; padding: 8px 10px; background: #fafafa; font-size: 16px; color: #999;">
+                (пустое поле с плейсхолдером)
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title" style="background:#f44336">🔴 ДУБЛИ — можно объединить</div>
+
+        <div class="style-demo" style="border-left: 4px solid #f44336;">
+            <div class="style-name">.remove-btn === .task-remove-link</div>
+            <span class="remove-btn">×</span> vs <a class="task-remove-link">Удалить</a>
+            <div class="hint-block">Одинаковые стили: color: #f44336, cursor: pointer</div>
+        </div>
+
+        <div class="style-demo" style="border-left: 4px solid #f44336;">
+            <div class="style-name">.remove-btn:hover === .task-remove-link:hover</div>
+            <span class="remove-btn" style="color: #d32f2f;">× при наведении</span> vs <a class="task-remove-link" style="color: #d32f2f;">Удалить при наведении</a>
+        </div>
+
+        <div class="style-demo" style="border-left: 4px solid #f44336;">
+            <div class="style-name">.field-group === .row-fields .field-group</div>
+            <div style="margin-bottom: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px;">Определение 1</div>
+            <div class="row-fields .field-group" style="margin-bottom: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px;">Определение 2</div>
+            <div class="hint-block">Второе определение лишнее — достаточно первого</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title" style="background:#9c27b0">🟣 ПОХОЖИЕ — можно объединить</div>
+
+        <div class="style-demo" style="border-left: 4px solid #9c27b0;">
+            <div class="style-name">input:focus === .editable-field:focus</div>
+            <input type="text" value="input с фокусом" style="border: 1px solid #4caf50; background: #fff; padding: 8px; border-radius: 6px;">
+            vs
+            <div class="editable-field" contenteditable="true" style="border: 1px solid #4caf50; background: #fff; padding: 8px; border-radius: 6px; display: inline-block;">.editable с фокусом</div>
+            <div class="hint-block">Идентичные стили: border-color: #4caf50; background: #fff;</div>
+        </div>
+
+        <div class="style-demo" style="border-left: 4px solid #9c27b0;">
+            <div class="style-name">.member-fields input:focus === .senior-fields input:focus</div>
+            <input type="text" value="member-fields" style="border: none; background: #fff; padding: 0 8px;">
+            vs
+            <input type="text" value="senior-fields" style="border: none; background: #fff; padding: 0 8px;">
+            <div class="hint-block">Оба: border: none !important; background: #fff !important;</div>
+        </div>
+    </div>
+
+</body>
+</html>

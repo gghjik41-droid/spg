@@ -4,265 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>НА ПСР</title>
-	
-<style>
-    body { 
-        font-family: 'Segoe UI', sans-serif; 
-        background: white; 
-        margin: 0; 
-        padding: 0; 
-        color: #333; 
-        overflow-x: hidden; 
-    }
-
-    h2 { 
-        margin-top: 0; 
-        color: #211e1e; 
-        border-bottom: 2px solid #3b3535; 
-        padding-bottom: 6px; 
-        font-size: 16px;
-        text-transform: uppercase; 
-        margin-bottom: 10px;
-    }
-
-    /* Секции */
-    .section-block { 
-        margin-bottom: 4px; 
-    }
-
-    .section-header { 
-        background: #f5f5f5; 
-        color: #2e7d32; 
-        padding: 8px 10px; 
-        cursor: pointer; 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        font-weight: bold; 
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        user-select: none;
-        border: 1px solid #c8e6c9;
-        border-radius: 4px;
-        margin: 4px;
-    }
-
-    .section-header:hover {
-        background: #e8f5e9;
-        border-color: #81c784;
-    }
-
-    .section-toggle {
-        font-size: 16px;
-        transition: transform 0.3s ease;
-    }
-
-    .section-block.open .section-toggle {
-        transform: rotate(180deg);
-    }
-
-    .section-block.open .section-header {
-        background: #e8f5e9;
-        border-color: #4caf50; 
-    }
-
-    .section-content { 
-        padding: 8px; 
-        display: none; 
-        background: white;
-    }
-
-    .section-block.open .section-content {
-        display: block; 
-    }
-
-    /* Поля ввода — как в опроснике */
-    .field-group { 
-        margin-bottom: 8px; 
-        border-bottom: 1px solid #f0f0f0; 
-        padding-bottom: 4px; 
-    }
-
-    label { 
-        display: block; 
-        font-weight: 700; 
-        margin-bottom: 1px; 
-        font-size: 12px; 
-        color: #263238; 
-        text-decoration: underline; 
-    }
-
-    input, textarea { 
-        width: 100%; 
-        padding: 6px 8px; 
-        border: 1px solid #cfd8dc; 
-        border-radius: 6px; 
-        box-sizing: border-box; 
-        font-size: 14px;
-        font-family: 'Segoe UI', sans-serif;
-        background: #fafafa; 
-        display: block; 
-        outline: none; 
-        transition: all 0.2s; 
-    }
-
-    input:focus, textarea:focus { 
-        border-color: #4caf50; 
-        background: #fff; 
-    }
-
-    textarea {
-        resize: none;
-        min-height: 60px;
-        overflow: hidden;
-    }
-
-    /* Поля в строку */
-    .row-fields {
-        display: flex;
-        gap: 10px;
-    }
-
-    .row-fields .field-group {
-        flex: 1;
-    }
-
-    /* Ссылка на добавление — как в опроснике */
-    .add-field-btn { 
-        font-size: 11px; 
-        color: #1976d2; 
-        cursor: pointer; 
-        text-decoration: none; 
-        display: inline-block; 
-        margin-top: 5px; 
-        font-weight: bold; 
-    }
-
-    /* Кнопка удаления */
-    .remove-btn { 
-        color: #f44336; 
-        cursor: pointer; 
-        font-weight: bold; 
-        font-size: 20px; 
-        padding: 0 5px; 
-        user-select: none; 
-        line-height: 1;
-    }
-
-    .remove-btn:hover {
-        color: #d32f2f;
-    }
-
-    /* Участник */
-    .member-row {
-        margin-bottom: 4px; 
-    }
-
-    .member-fields {
-        display: flex;
-        align-items: center;
-        height: 32px;
-        overflow: hidden;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        background: #fafafa;
-        font-size: 14px;
-        line-height: 32px;
-    }
-
-    .member-number {
-        font-weight: 700;
-        color: #333;
-        min-width: 30px;
-        text-align: center;
-        font-size: 14px;
-        line-height: 32px;
-        border-right: 1px solid #eee;
-    }
-
-    .member-fields input {
-        border: none !important;
-        border-radius: 0 !important;
-        background: transparent !important;
-        font-size: 14px !important;
-        padding: 0 6px !important;
-        line-height: normal !important;
-    }
-
-    .member-fields input.member-name {
-        flex: 2;
-    }
-
-    .member-fields input.member-phone {
-        flex: 1.5;
-        border-left: 1px solid #eee !important;
-    }
-
-    .member-fields input:focus {
-        background: #fff !important;
-    }
-
-    .member-fields .remove-btn {
-        color: #f44336;
-        cursor: pointer;
-        font-weight: bold;
-        font-size: 18px;
-        padding: 0 8px;
-        user-select: none;
-        line-height: 32px;
-        border-left: 1px solid #eee;
-    }
-
-    .member-fields .remove-btn:hover {
-        background: #ffebee;
-    }
-
-    /* Старший группы */
-    .senior-fields {
-        border-color: #90a4ae !important;
-        background: #eceff1 !important;
-    }
-
-    .senior-fields .member-number {
-        color: #546e7a !important;
-        border-right: 1px solid #cfd8dc;
-    }
-
-    .senior-fields input {
-        flex: 1 !important;
-        border: none !important;
-        background: transparent !important;
-    }
-
-    .senior-fields input:focus {
-        background: #fff !important;
-    }
-
-    /* Подсказка — как в опроснике */
-    .hint { 
-        font-size: 12px; 
-        color: #2e7d32; 
-        margin-bottom: 4px; 
-        display: block; 
-        line-height: 1.3; 
-        background: #f1f8e9; 
-        padding: 4px 10px; 
-        border-left: 3px solid #4caf50; 
-    }
-
-    /* Ссылка удаления задачи */
-    .task-remove-link {
-        color: #f44336;
-        font-size: 13px;
-        cursor: pointer;
-        text-decoration: underline;
-    }
-    .task-remove-link:hover {
-        color: #d32f2f;
-    }
-</style>
-
+    <link rel="stylesheet" href="common.css">
 </head>
 <body oninput="syncEverything()">
 
@@ -272,12 +14,12 @@
     <div class="section-block open" id="section-staff">
         <div class="section-header" onclick="toggleSection('staff')">
             <span>ДАННЫЕ ШТАБА</span>
-            <span class="section-toggle">▼</span>
+            <span class="section-toggle"></span>
         </div>
         <div class="section-content">
             <div class="field-group">
                 <label>Координаты:</label>
-                <div style="display: flex; height: 32px; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: #fafafa;">
+                <div style="display: flex; height: 38px; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: #fafafa;">
                     <input type="text" id="f_staff_lat" class="q-field" 
                            placeholder="54.000000" 
                            style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent; border-right: 1px solid #eee;">
@@ -290,7 +32,7 @@
             
             <div class="field-group">
                 <label>Номер телефона, частота радиосвязи:</label>
-                <div style="display: flex; height: 33px; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: #fafafa;">
+                <div style="display: flex; height: 38px; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: #fafafa;">
                     <input type="text" id="f_staff_num" class="q-field" 
                            placeholder="88009000000" 
                            style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent; border-right: 1px solid #eee;">
@@ -303,7 +45,7 @@
             
             <div class="field-group">
                 <label>Линейный ориентир и аварийный азимут на него:</label>
-                <div style="display: flex; height: 33px; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: #fafafa;">
+                <div style="display: flex; height: 38px; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: #fafafa;">
                     <input type="text" id="f_staff_orient" class="q-field" 
                            placeholder="Автодорога..." 
                            style="flex: 1.5; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent; border-right: 1px solid #eee;">
@@ -320,7 +62,7 @@
     <div class="section-block open" id="section-info">
         <div class="section-header" onclick="toggleSection('info')">
             <span>ВВОДНЫЕ ПО ПОИСКУ</span>
-            <span class="section-toggle">▼</span>
+            <span class="section-toggle"></span>
         </div>
         <div class="section-content">
             <div class="field-group">
@@ -402,7 +144,7 @@
         taskDiv.innerHTML = 
             '<div class="section-header" onclick="toggleSection(\'' + taskId + '\')">' +
                 '<span>ЗАДАЧА ' + taskNum + '</span>' +
-                '<span class="section-toggle">▼</span>' +
+                '<span class="section-toggle"></span>' +
             '</div>' +
             '<div class="section-content">' +
                 '<div class="field-group">' +
