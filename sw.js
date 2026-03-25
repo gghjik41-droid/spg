@@ -1,5 +1,5 @@
 // Меняй это число при каждом обновлении, чтобы сбросить кэш
-const CACHE_VERSION = 20;
+const CACHE_VERSION = 21;
 const CACHE_NAME = 'pso-v' + CACHE_VERSION;
 
 // Список файлов для оффлайн-режима
@@ -13,20 +13,31 @@ const filesToCache = [
   './common.css',
   './panzoom.min.js',
   './222222.html',
-  './333333.html',
-  './444444.html',
-  './555555.html',
   './manifest.json',
-  './favicon.png',
   './sw.js'
 ];
 
-// 1. Установка: сохраняем базу в кэш
+// 1. Установка: сохраняем базу в кэш (с обработкой отсутствующих файлов)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('Подготовка оффлайн-копии файлов...');
-      return cache.addAll(filesToCache);
+      // Добавляем файлы по одному, игнорируя ошибки для отсутствующих
+      return Promise.allSettled(
+        filesToCache.map(url => 
+          fetch(url).then(response => {
+            if (response.ok) {
+              return cache.put(url, response);
+            }
+          })
+        )
+      ).then(results => {
+        results.forEach((result, i) => {
+          if (result.status === 'rejected') {
+            console.log('Файл не добавлен в кэш:', filesToCache[i]);
+          }
+        });
+      });
     })
   );
   self.skipWaiting();
