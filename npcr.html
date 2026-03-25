@@ -91,6 +91,12 @@
         <div class="section-content">
             <input type="file" id="orient-file-input" accept="image/*" style="display: none;" onchange="handleOrientFile(this)">
             <a class="add-field-btn" onclick="document.getElementById('orient-file-input').click()">[+] Прикрепить ориентировку</a>
+            
+            <!-- Модальное окно для просмотра картинки -->
+            <div id="image-modal" onclick="closeImageModal()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center;">
+                <img id="modal-image" style="max-width: 95%; max-height: 95%; object-fit: contain;">
+                <span class="remove-btn" style="position: absolute; top: 20px; right: 20px; font-size: 30px; background: rgba(255,255,255,0.8); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">×</span>
+            </div>
             <div id="orient-images" style="margin-top: 10px;"></div>
         </div>
     </div>
@@ -250,6 +256,8 @@
                 img.style.width = '100%';
                 img.style.borderRadius = '6px';
                 img.style.border = '1px solid #ccc';
+                img.style.cursor = 'pointer';
+                img.onclick = function() { openImageModal(dataUrl); };
                 
                 var removeBtn = document.createElement('span');
                 removeBtn.className = 'remove-btn';
@@ -309,6 +317,19 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    }
+
+    // Открыть картинку на весь экран
+    function openImageModal(src) {
+        var modal = document.getElementById('image-modal');
+        var modalImg = document.getElementById('modal-image');
+        modalImg.src = src;
+        modal.style.display = 'flex';
+    }
+
+    // Закрыть модальное окно
+    function closeImageModal() {
+        document.getElementById('image-modal').style.display = 'none';
     }
 
     // Загрузка картинок из IndexedDB
@@ -473,8 +494,8 @@
                 '<div class="member-fields">' +
                     '<span class="member-number">' + (count + 2) + '.</span>' +
                     '<input type="text" class="q-field member-name" placeholder="ФИО" value="' + (name || '') + '">' +
-                    '<input type="text" class="q-field member-phone" placeholder="88009000000" value="' + (phone || '') + '">' +
                     '<span class="add-contact-btn" onclick="addContactFromRow(this)" title="Добавить в контакты" style="color: #4caf50; cursor: pointer; font-weight: bold; font-size: 16px; padding: 0 5px;">+</span>' +
+                    '<input type="text" class="q-field member-phone" placeholder="88009000000" value="' + (phone || '') + '">' +
                     '<span class="remove-btn" onclick="removeMember(this)">×</span>' +
                 '</div>';
         }
