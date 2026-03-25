@@ -92,11 +92,7 @@
             <input type="file" id="orient-file-input" accept="image/*" style="display: none;" onchange="handleOrientFile(this)">
             <a class="add-field-btn" onclick="document.getElementById('orient-file-input').click()">[+] Прикрепить ориентировку</a>
             
-            <!-- Модальное окно для просмотра картинки -->
-            <div id="image-modal" onclick="closeImageModal()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center;">
-                <img id="modal-image" style="max-width: 95%; max-height: 95%; object-fit: contain;">
-                <span class="remove-btn" style="position: absolute; top: 20px; right: 20px; font-size: 30px; background: rgba(255,255,255,0.8); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">×</span>
-            </div>
+
             <div id="orient-images" style="margin-top: 10px;"></div>
         </div>
     </div>
@@ -256,8 +252,55 @@
                 img.style.width = '100%';
                 img.style.borderRadius = '6px';
                 img.style.border = '1px solid #ccc';
-                img.style.cursor = 'pointer';
-                img.onclick = function() { openImageModal(dataUrl); };
+                img.style.touchAction = 'none'; // отключаем стандартный зум браузера
+                
+                // Простой зум двумя пальцами
+                var initialDistance = 0;
+                var currentScale = 1;
+                
+                img.addEventListener('touchstart', function(e) {
+                    if (e.touches.length === 2) {
+                        var dx = e.touches[0].clientX - e.touches[1].clientX;
+                        var dy = e.touches[0].clientY - e.touches[1].clientY;
+                        initialDistance = Math.sqrt(dx*dx + dy*dy);
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+                
+                img.addEventListener('touchmove', function(e) {
+                    if (e.touches.length === 2 && initialDistance > 0) {
+                        var dx = e.touches[0].clientX - e.touches[1].clientX;
+                        var dy = e.touches[0].clientY - e.touches[1].clientY;
+                        var distance = Math.sqrt(dx*dx + dy*dy);
+                        var scale = distance / initialDistance * currentScale;
+                        
+                        // Ограничения: мин 1, макс 3
+                        if (scale < 1) scale = 1;
+                        if (scale > 3) scale = 3;
+                        
+                        img.style.transform = 'scale(' + scale + ')';
+                        img.style.transformOrigin = 'center center';
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+                
+                img.addEventListener('touchend', function(e) {
+                    if (e.touches.length < 2) {
+                        initialDistance = 0;
+                        // Фиксируем текущий scale
+                        var computedStyle = window.getComputedStyle(img);
+                        var transform = computedStyle.transform;
+                        if (transform && transform !== 'none') {
+                            var values = transform.match(/matrix\(([^)]+)\)/);
+                            if (values) {
+                                var parts = values[1].split(', ');
+                                currentScale = parseFloat(parts[0]);
+                            }
+                        }
+                        if (currentScale < 1) currentScale = 1;
+                        if (currentScale > 3) currentScale = 3;
+                    }
+                });
                 
                 var removeBtn = document.createElement('span');
                 removeBtn.className = 'remove-btn';
@@ -317,19 +360,6 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-    }
-
-    // Открыть картинку на весь экран
-    function openImageModal(src) {
-        var modal = document.getElementById('image-modal');
-        var modalImg = document.getElementById('modal-image');
-        modalImg.src = src;
-        modal.style.display = 'flex';
-    }
-
-    // Закрыть модальное окно
-    function closeImageModal() {
-        document.getElementById('image-modal').style.display = 'none';
     }
 
     // Загрузка картинок из IndexedDB

@@ -322,9 +322,7 @@
 </div>
 
 <div class="header-nav" id="menu">
-    <div style="display: flex; gap: 5px; justify-self: start; align-items: center;">
-        <span id="online-status" style="display: none; width: 10px; height: 10px; border-radius: 50%; background: #4caf50; flex-shrink: 0;" title="Онлайн"></span>
-        <span id="offline-status" style="display: none; width: 10px; height: 10px; border-radius: 50%; background: #f44336; flex-shrink: 0;" title="Офлайн"></span>
+    <div style="display: flex; gap: 5px; justify-self: start;">
         <button class="clear-btn" onclick="clearAllData()" title="Полная очистка">✕</button>
         <button class="pin-btn active" id="master-pin-btn" onclick="togglePin()" title="Закрепить/открепить шапку заявки">📌</button>
     </div>
@@ -337,10 +335,12 @@
         <!-- <button class="nav-btn" onclick="openSurvey('222222.html', this)">222222</button> -->
     </div>
 
-    <div style="display: flex; gap: 5px; justify-self: end; padding-right: 10px;">
+    <div style="display: flex; gap: 5px; justify-self: end; padding-right: 10px; align-items: center;">
         <button class="nav-btn" onclick="exportToJson()" title="Выгрузить JSON">💾</button>
         <button class="nav-btn" onclick="document.getElementById('import-file').click()" title="Загрузить JSON">📂</button>
         <input type="file" id="import-file" style="display:none" onchange="importFromJson(this)" accept=".json">
+        <span id="online-status" style="display: none; width: 10px; height: 10px; border-radius: 50%; background: #4caf50; flex-shrink: 0;" title="Онлайн"></span>
+        <span id="offline-status" style="display: none; width: 10px; height: 10px; border-radius: 50%; background: #f44336; flex-shrink: 0;" title="Офлайн"></span>
     </div>
 </div>
 
@@ -813,5 +813,7 @@
         });
     }
 </script>
+
+
 </body>
 </html>
