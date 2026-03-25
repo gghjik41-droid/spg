@@ -281,9 +281,23 @@
                 var currentPan = { x: 0, y: 0 };
                 var lastTouchX = 0, lastTouchY = 0;
                 var panStart = { x: 0, y: 0 };
+                var imgRect = null;
+                
+                // Вычисляем границы пана
+                function getPanLimits() {
+                    if (!imgRect) imgRect = img.getBoundingClientRect();
+                    var w = imgRect.width * currentScale - imgRect.width;
+                    var h = imgRect.height * currentScale - imgRect.height;
+                    return {
+                        maxX: w / 2,
+                        maxY: h / 2
+                    };
+                }
                 
                 img.addEventListener('touchstart', function(e) {
                     if (e.touches.length === 2) {
+                        imgRect = img.getBoundingClientRect(); // обновляем при начале
+                        
                         // Зум
                         var dx = e.touches[0].clientX - e.touches[1].clientX;
                         var dy = e.touches[0].clientY - e.touches[1].clientY;
@@ -323,6 +337,13 @@
                         if (currentScale > 1) {
                             currentPan.x = panStart.x + panDx;
                             currentPan.y = panStart.y + panDy;
+                            
+                            // Ограничиваем границами
+                            var limits = getPanLimits();
+                            if (currentPan.x > limits.maxX) currentPan.x = limits.maxX;
+                            if (currentPan.x < -limits.maxX) currentPan.x = -limits.maxX;
+                            if (currentPan.y > limits.maxY) currentPan.y = limits.maxY;
+                            if (currentPan.y < -limits.maxY) currentPan.y = -limits.maxY;
                         }
                         
                         img.style.transform = 'translate(' + currentPan.x + 'px, ' + currentPan.y + 'px) scale(' + currentScale + ')';
@@ -340,6 +361,9 @@
                         }
                     }
                 });
+                
+                // Один палец - скролл страницы (не блокируем)
+                img.style.touchAction = 'pan-y';
             });
         });
     }
