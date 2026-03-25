@@ -281,7 +281,9 @@
                             maxScale: 3,
                             minScale: 1,
                             contain: 'outside',
-                            startScale: 1
+                            startScale: 1,
+                            disablePan: true, // отключаем движение одним пальцем
+                            disableZoom: false
                         });
                     } catch(e) {
                         console.log('Panzoom error:', e);
