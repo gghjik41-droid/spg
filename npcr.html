@@ -798,18 +798,20 @@
 
     // Загрузка из localStorage
     function loadLocal() {
-        // Пробуем новую версию, потом старую
-        var raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) {
-            raw = localStorage.getItem('survey_cache_npcr_v1');
-        }
-        
-        if (!raw) {
-            // По умолчанию 1 задача
-            addTask(null);
-            return;
-        }
-        
+        return new Promise(function(resolve) {
+            // Пробуем новую версию, потом старую
+            var raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+                raw = localStorage.getItem('survey_cache_npcr_v1');
+            }
+            
+            if (!raw) {
+                // По умолчанию 1 задача
+                addTask(null);
+                resolve();
+                return;
+            }
+            
         try {
             var data = JSON.parse(raw);
             
@@ -877,6 +879,9 @@
             console.error('Ошибка загрузки:', e);
             addTask(null);
         }
+        
+        resolve();
+        });
     }
 
     // Отправка высоты

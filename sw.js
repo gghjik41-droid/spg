@@ -1,5 +1,5 @@
 // Меняй это число при каждом обновлении, чтобы сбросить кэш
-const CACHE_VERSION = 18;
+const CACHE_VERSION = 20;
 const CACHE_NAME = 'pso-v' + CACHE_VERSION;
 
 // Список файлов для оффлайн-режима
