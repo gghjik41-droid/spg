@@ -273,6 +273,44 @@
         });
     }
 
+    // Добавить контакт из строки участника
+    function addContactFromRow(btn) {
+        var row = btn.closest('.member-row');
+        var name = row.querySelector('.member-name').value.trim();
+        var phone = row.querySelector('.member-phone').value.trim();
+        
+        if (!name && !phone) {
+            alert('Введите имя или номер телефона');
+            return;
+        }
+        
+        addToContacts(name, phone);
+    }
+
+    // Добавить в контакты (vCard)
+    function addToContacts(name, phone) {
+        if (!name && !phone) {
+            alert('Введите имя или номер телефона');
+            return;
+        }
+        
+        var vcard = 'BEGIN:VCARD\nVERSION:3.0\n';
+        if (name) vcard += 'FN:' + name + '\n';
+        if (phone) vcard += 'TEL:' + phone + '\n';
+        vcard += 'END:VCARD';
+        
+        var blob = new Blob([vcard], { type: 'text/vcard' });
+        var url = URL.createObjectURL(blob);
+        
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = (name || 'contact') + '.vcf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
     // Загрузка картинок из IndexedDB
     function loadOrientImages() {
         return new Promise(function(resolve) {
@@ -328,7 +366,7 @@
                 removeBtn.style.display = num === 1 ? 'none' : 'inline';
             }
         });
-        
+            
         sendHeight();
         syncEverything();
     }
@@ -436,6 +474,7 @@
                     '<span class="member-number">' + (count + 2) + '.</span>' +
                     '<input type="text" class="q-field member-name" placeholder="ФИО" value="' + (name || '') + '">' +
                     '<input type="text" class="q-field member-phone" placeholder="88009000000" value="' + (phone || '') + '">' +
+                    '<span class="add-contact-btn" onclick="addContactFromRow(this)" title="Добавить в контакты" style="color: #4caf50; cursor: pointer; font-weight: bold; font-size: 16px; padding: 0 5px;">+</span>' +
                     '<span class="remove-btn" onclick="removeMember(this)">×</span>' +
                 '</div>';
         }
