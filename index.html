@@ -330,10 +330,9 @@
     <div style="display: flex; gap: 5px; justify-content: center;">
         <button class="nav-btn active" onclick="openSurvey('npcr.html', this)">НА ПСР</button>
         <button class="nav-btn" onclick="openSurvey('molitva.html', this)">МОЛИТВА</button>
+        <button class="nav-btn" onclick="openSurvey('pamyatki.html', this)">ПАМЯТКИ</button>
+        <button class="nav-btn" onclick="openSurvey('vopros.html', this)">ВОПРОС</button>
         <button class="nav-btn" onclick="openSurvey('222222.html', this)">222222</button>
-        <button class="nav-btn" onclick="openSurvey('333333.html', this)">333333</button>
-        <button class="nav-btn" onclick="openSurvey('444444.html', this)">444444</button>
-        <button class="nav-btn" onclick="openSurvey('555555.html', this)">555555</button>
     </div>
 
     <div style="display: flex; gap: 5px; justify-self: end; padding-right: 10px;">
@@ -359,7 +358,7 @@
 
 <script>
     // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
-    var ORDER = ['npcr', 'molitva', '222222', '333333', '444444', '555555'];
+    var ORDER = ['npcr', 'molitva', 'pamyatki', '222222', '333333', '444444', '555555'];
     var globalZData = localStorage.getItem('pso_z_main') || "";
     var globalCallsignData = localStorage.getItem('pso_global_callsign_data') || ""; 
     var globalFields = JSON.parse(localStorage.getItem('pso_global_fields') || "{}"); 
