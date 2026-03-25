@@ -329,6 +329,7 @@
 
     <div style="display: flex; gap: 5px; justify-content: center;">
         <button class="nav-btn active" onclick="openSurvey('npcr.html', this)">НА ПСР</button>
+        <button class="nav-btn" onclick="openSurvey('molitva.html', this)">МОЛИТВА</button>
         <button class="nav-btn" onclick="openSurvey('222222.html', this)">222222</button>
         <button class="nav-btn" onclick="openSurvey('333333.html', this)">333333</button>
         <button class="nav-btn" onclick="openSurvey('444444.html', this)">444444</button>
@@ -358,7 +359,7 @@
 
 <script>
     // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
-    var ORDER = ['npcr', '222222', '333333', '444444', '555555'];
+    var ORDER = ['npcr', 'molitva', '222222', '333333', '444444', '555555'];
     var globalZData = localStorage.getItem('pso_z_main') || "";
     var globalCallsignData = localStorage.getItem('pso_global_callsign_data') || ""; 
     var globalFields = JSON.parse(localStorage.getItem('pso_global_fields') || "{}"); 
@@ -480,6 +481,11 @@
             broadcastData(globalCallsignData, globalFields);
             adjustFrameOffset();
             updateFinalOutput();
+            // Показать блок результата (по умолчанию)
+            var resultSide = document.querySelector('.result-side');
+            var btnCopy = document.getElementById('copy-btn');
+            if (resultSide) resultSide.style.display = 'block';
+            if (btnCopy) btnCopy.style.display = 'flex';
             // Скрываем после прогрузки фрейма
             setTimeout(() => toggleLoader(false), 200);
         };
@@ -581,6 +587,20 @@
                 frame.style.height = event.data.height + 'px';
                 adjustFrameOffset();
             }
+        }
+
+        if (event.data.type === 'hide_result') {
+            var resultSide = document.querySelector('.result-side');
+            var btnCopy = document.getElementById('copy-btn');
+            if (resultSide) resultSide.style.display = event.data.hide ? 'none' : 'block';
+            if (btnCopy) btnCopy.style.display = event.data.hide ? 'none' : 'flex';
+        }
+
+        if (event.data.type === 'show_result') {
+            var resultSide = document.querySelector('.result-side');
+            var btnCopy = document.getElementById('copy-btn');
+            if (resultSide) resultSide.style.display = 'block';
+            if (btnCopy) btnCopy.style.display = 'flex';
         }
     });
 

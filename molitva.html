@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>МОЛИТВА</title>
+    <link rel="stylesheet" href="common.css">
+    <style>
+        .memo-block {
+            margin-bottom: 20px;
+        }
+        
+        .memo-title {
+            font-weight: bold;
+            color: #305232;
+            text-transform: uppercase;
+            font-size: 11px;
+            margin-bottom: 8px;
+        }
+        
+        .memo-task {
+            color: #c62828;
+            font-style: italic;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 3px solid #ef5350;
+        }
+        
+        .memo-list {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .memo-list li {
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+        
+        .warning-block {
+            background: #ffe4e4;
+            border: 1px solid #fe7575;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 15px;
+            margin-bottom: 80px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #e00000;
+            text-align: center
+        }
+    </style>
+</head>
+<body>
+
+    <h2>МОЛИТВА</h2>
+
+    <!-- ОПРОСИТЬ -->
+    <div class="section-block open" id="section-opros">
+        <div class="section-header" onclick="toggleSection('opros')">
+            <span>ОПРОСИТЬ</span>
+            <span class="section-toggle"></span>
+        </div>
+        <div class="section-content">
+            <div class="memo-block">
+                <div class="memo-title">Главная задача:</div>
+                <div class="memo-task">Убедиться, что группа подходит для задачи, а задача подходит группе.</div>
+            </div>
+            
+            <ul class="memo-list">
+                <li><strong>Ресурсы:</strong> уточнить наличие времени на задачу, уровень опыта и навыков участников.</li>
+                <li><strong>Контакты:</strong> передать группе свой номер, номер отряда, а также контакты штаба («Зари») и инфорга.</li>
+                <li><strong>Регистрация:</strong> переписать ФИО и телефоны всех участников группы.</li>
+                <li><strong>Здоровье:</strong> опросить о хронических заболеваниях и наличии личных лекарств в индивидуальных аптечках.</li>
+                <li><strong>Безопасность:</strong> контроль отсутствия огнестрельного оружия (при наличии — попросить разрядить).</li>
+                <li><strong>Вводные:</strong> сообщить позывной группы, квадрат, задачу, данные пропавшего (ФИО, приметы, особенности поведения).</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ОБЪЯСНИТЬ -->
+    <div class="section-block open" id="section-obj">
+        <div class="section-header" onclick="toggleSection('obj')">
+            <span>ОБЪЯСНИТЬ</span>
+            <span class="section-toggle"></span>
+        </div>
+        <div class="section-content">
+            <div class="memo-block">
+                <div class="memo-title">Главная задача:</div>
+                <div class="memo-task">Распределить роли и обозначить правила безопасности.</div>
+            </div>
+            
+            <ul class="memo-list">
+                <li><strong>Субординация:</strong> СПГ отвечает за группу, его решения не обсуждаются. Назначить заместителя на случай ЧП.</li>
+                <li><strong>Ориентирование:</strong> определить аварийный азимут от района задачи и сориентировать группу на карте.</li>
+                <li><strong>Связь:</strong> все команды внутри группы дублируются голосом. Общение со штабом — только через СПГ или уполномоченного.</li>
+                <li><strong>Команда «СТОП»:</strong> обучить всех кричать "ГРУППА СТОП" — по этой команде движение прекращается, перемещается только старший.</li>
+                <li><strong>Препятствия и опасности:</strong> инструктаж по преодолению завалов и буреломов; предупреждение об оврагах и болотах или других особенностях местности.</li>
+                <li><strong>Если отстал:</strong> четкое правило — оставаться на месте, ждать и слушать.</li>
+                <li><strong>Привалы:</strong> первый через 2–2.5 часа, далее каждый час на 5–10 минут или по договоренности (осмотр на клещей, контроль состояния, статус задачи).</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- СНАРЯДИТЬ -->
+    <div class="section-block open" id="section-snar">
+        <div class="section-header" onclick="toggleSection('snar')">
+            <span>СНАРЯДИТЬ</span>
+            <span class="section-toggle"></span>
+        </div>
+        <div class="section-content">
+            <div class="memo-block">
+                <div class="memo-title">Главная задача:</div>
+                <div class="memo-task">Контроль экипировки перед выходом на задачу.</div>
+            </div>
+            
+            <ul class="memo-list">
+                <li><strong>Одежда:</strong> закрытая обувь, головной убор, перчатки, очки, защита от дождя. Отсутствие открытых участков кожи. На флангах цепи — яркие элементы одежды.</li>
+                <li><strong>Связь:</strong> одна рация на группу, у каждого заряженный телефон + пауэрбанк.</li>
+                <li><strong>Фонари и АКБ:</strong> фонарь у каждого + 1 запасной фонарь на группу (если задача строго засветло — минимум 2 фонаря на группу).</li>
+                <li><strong>Навигация:</strong> на группу — минимум один навигатор и один компас. Проверить исправность компасов и умение ими пользоваться у всех участников.</li>
+                <li><strong>Оборудование:</strong> проверить настройки, заряд и исправность. Элементы питания: полные + 1 комплект на замену. Дополнительные навигаторы и рации держать выключенными в резерве.</li>
+                <li><strong>Медицина и СИЗ:</strong> у старшего — аптечка первой помощи (ПП) и навыки её применения. У каждого — личная аптечка. Одноразовые маски и перчатки.</li>
+                <li><strong>Питание:</strong> у старшего — НЗ (минимум 2 бутылки 0,5), вода для себя и перекус, у каждого — вода на себя и перекус.</li>
+                <li><strong>Дополнительно:</strong> ориентировка, бумажная карта, блокнот с ручкой/карандашом, свисток (опционально).</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- WARNING -->
+    <div class="warning-block">
+        ⚠ СПГ имеет право исключить любого участника из группы (несоответствие экипировки, нарушение дисциплины, психологическая несовместимость) без объяснения причин.<br><br>
+        ⚠ Поисковик имеет право отказаться от участия в группе по тем же причинам без их оглашения.
+    </div>
+
+<script>
+    // Переключение секций
+    function toggleSection(section) {
+        var block = document.getElementById('section-' + section);
+        block.classList.toggle('open');
+        sendHeight();
+    }
+
+    // Отправка высоты
+    function sendHeight() {
+        var height = document.documentElement.offsetHeight || document.body.scrollHeight;
+        window.parent.postMessage({ type: 'set_height', height: height }, '*');
+    }
+
+    // Скрыть блок результата
+    function hideResult() {
+        window.parent.postMessage({ type: 'hide_result', hide: true }, '*');
+    }
+
+    // Инициализация
+    window.onload = function() {
+        hideResult();
+        sendHeight();
+    };
+</script>
+
+</body>
+</html>
