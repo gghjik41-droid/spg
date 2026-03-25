@@ -82,6 +82,19 @@
         </div>
     </div>
 
+    <!-- ОРИЕНТИРОВКА -->
+    <div class="section-block open" id="section-orient">
+        <div class="section-header" onclick="toggleSection('orient')">
+            <span>ОРИЕНТИРОВКА</span>
+            <span class="section-toggle"></span>
+        </div>
+        <div class="section-content">
+            <input type="file" id="orient-file-input" accept="image/*" capture="environment" style="display: none;" onchange="handleOrientFile(this)">
+            <a class="add-field-btn" onclick="document.getElementById('orient-file-input').click()">[+] Прикрепить ориентировку</a>
+            <div id="orient-images" style="margin-top: 10px;"></div>
+        </div>
+    </div>
+
     <!-- ЗАДАЧИ -->
     <div id="tasks-container">
         <!-- Задачи добавятся при загрузке -->
@@ -93,6 +106,199 @@
     var STORAGE_KEY = 'survey_cache_npcr_v2'; 
     var SOURCE_ID = 'npcr'; 
     var taskCounter = 0;
+    var db = null;
+    var orientImages = []; // Массив ID картинок
+
+    // IndexedDB - открытие
+    function openDB() {
+        return new Promise(function(resolve, reject) {
+            var request = indexedDB.open("NPCR_Images", 1);
+            
+            request.onerror = function() {
+                console.error("IndexedDB error");
+                reject(request.error);
+            };
+            
+            request.onsuccess = function() {
+                db = request.result;
+                resolve(db);
+            };
+            
+            request.onupgradeneeded = function(event) {
+                var database = event.target.result;
+                if (!database.objectStoreNames.contains("images")) {
+                    database.createObjectStore("images", { keyPath: "id" });
+                }
+            };
+        });
+    }
+
+    // IndexedDB - сохранение картинки
+    function saveImageToDB(id, file) {
+        return new Promise(function(resolve, reject) {
+            if (!db) {
+                openDB().then(function() {
+                    saveImageToDB(id, file).then(resolve).catch(reject);
+                });
+                return;
+            }
+            
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var transaction = db.transaction(["images"], "readwrite");
+                var store = transaction.objectStore("images");
+                var request = store.put({ id: id, data: e.target.result, name: file.name });
+                request.onsuccess = function() { resolve(id); };
+                request.onerror = function() { reject(request.error); };
+            };
+            reader.onerror = function() { reject(reader.error); };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // IndexedDB - получение картинки
+    function getImageFromDB(id) {
+        return new Promise(function(resolve, reject) {
+            if (!db) {
+                openDB().then(function() {
+                    getImageFromDB(id).then(resolve).catch(reject);
+                });
+                return;
+            }
+            
+            var transaction = db.transaction(["images"], "readonly");
+            var store = transaction.objectStore("images");
+            var request = store.get(id);
+            request.onsuccess = function() { resolve(request.result ? request.result.data : null); };
+            request.onerror = function() { reject(request.error); };
+        });
+    }
+
+    // IndexedDB - удаление картинки
+    function deleteImageFromDB(id) {
+        return new Promise(function(resolve, reject) {
+            if (!db) {
+                resolve();
+                return;
+            }
+            
+            var transaction = db.transaction(["images"], "readwrite");
+            var store = transaction.objectStore("images");
+            var request = store.delete(id);
+            request.onsuccess = function() { resolve(); };
+            request.onerror = function() { reject(request.error); };
+        });
+    }
+
+    // Обработка загрузки файла
+    function handleOrientFile(input) {
+        if (!input.files || !input.files[0]) return;
+        
+        var file = input.files[0];
+        
+        // Проверка лимита
+        if (orientImages.length >= 10) {
+            alert('Максимум 10 картинок');
+            return;
+        }
+        
+        var id = 'orient_' + Date.now();
+        
+        saveImageToDB(id, file).then(function(savedId) {
+            orientImages.push(savedId);
+            renderOrientImages();
+            saveLocal();
+            sendHeight();
+        }).catch(function(err) {
+            console.error('Ошибка сохранения картинки:', err);
+            alert('Ошибка при сохранении картинки');
+        });
+        
+        // Очистить input для повторной загрузки того же файла
+        input.value = '';
+    }
+
+    // Удалить картинку
+    function removeOrientImage(id) {
+        if (!confirm('Удалить эту ориентировку?')) return;
+        
+        deleteImageFromDB(id).then(function() {
+            orientImages = orientImages.filter(function(imgId) { return imgId !== id; });
+            renderOrientImages();
+            saveLocal();
+            sendHeight();
+        });
+    }
+
+    // Отобразить картинки
+    function renderOrientImages() {
+        var container = document.getElementById('orient-images');
+        container.innerHTML = '';
+        
+        if (orientImages.length === 0) return;
+        
+        orientImages.forEach(function(id) {
+            getImageFromDB(id).then(function(dataUrl) {
+                if (!dataUrl) return;
+                
+                var div = document.createElement('div');
+                div.style.position = 'relative';
+                div.style.marginBottom = '10px';
+                
+                var img = document.createElement('img');
+                img.src = dataUrl;
+                img.style.width = '100%';
+                img.style.borderRadius = '6px';
+                img.style.border = '1px solid #ccc';
+                
+                var removeBtn = document.createElement('span');
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '×';
+                removeBtn.style.position = 'absolute';
+                removeBtn.style.top = '5px';
+                removeBtn.style.right = '5px';
+                removeBtn.style.background = 'rgba(255,255,255,0.9)';
+                removeBtn.style.borderRadius = '50%';
+                removeBtn.style.width = '24px';
+                removeBtn.style.height = '24px';
+                removeBtn.style.display = 'flex';
+                removeBtn.style.alignItems = 'center';
+                removeBtn.style.justifyContent = 'center';
+                removeBtn.onclick = function() { removeOrientImage(id); };
+                
+                div.appendChild(img);
+                div.appendChild(removeBtn);
+                container.appendChild(div);
+            });
+        });
+    }
+
+    // Загрузка картинок из IndexedDB
+    function loadOrientImages() {
+        return new Promise(function(resolve) {
+            if (!db) {
+                openDB().then(function() {
+                    loadOrientImages().then(resolve);
+                });
+                return;
+            }
+            
+            var transaction = db.transaction(["images"], "readonly");
+            var store = transaction.objectStore("images");
+            var request = store.getAllKeys();
+            
+            request.onsuccess = function() {
+                orientImages = request.result || [];
+                renderOrientImages();
+                resolve();
+            };
+            
+            request.onerror = function() {
+                orientImages = [];
+                resolve();
+            };
+        });
+    }
 
     // Переключение секций
     function toggleSection(section) {
@@ -448,7 +654,8 @@
                 appearance: document.getElementById('f_info_appearance').value
             },
             tasks: tasks,
-            sections: sections
+            sections: sections,
+            orientImages: orientImages
         };
         
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -500,6 +707,12 @@
                 infoBlock.classList.remove('open');
             }
             
+            // ОРИЕНТИРОВКА
+            if (data.orientImages && Array.isArray(data.orientImages)) {
+                orientImages = data.orientImages;
+                renderOrientImages();
+            }
+            
             // ЗАДАЧИ
             if (data.tasks && data.tasks.length > 0) {
                 data.tasks.forEach(function(t) {
@@ -539,10 +752,15 @@
 
     // Инициализация
     window.onload = function() {
-        loadLocal();
-        autoGrow(document.getElementById('f_info_appearance'));
-        syncEverything();
-        sendHeight();
+        openDB().then(function() {
+            loadLocal().then(function() {
+                loadOrientImages().then(function() {
+                    autoGrow(document.getElementById('f_info_appearance'));
+                    syncEverything();
+                    sendHeight();
+                });
+            });
+        });
     };
 </script>
 </body>
