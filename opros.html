@@ -274,6 +274,7 @@
             var seniorFromNpcr = localStorage.getItem('pso_senior_callsign');
             if (seniorFromNpcr) nameInp.value = seniorFromNpcr;
         }
+        // Ставим время только если поле пустое (т.е. новая вкладка, а не загрузка из JSON)
         if (dateInp && !dateInp.value.trim()) setCurrentTime();
         nameInp.oninput = syncEverything;
         dateInp.oninput = syncEverything;

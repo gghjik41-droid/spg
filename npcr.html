@@ -26,7 +26,7 @@
                            style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent; border-right: 1px solid #eee;">
                     
                     <input type="text" id="f_staff_lon" class="q-field" 
-                           placeholder="82.000000" 
+                           placeholder="082.000000" 
                            style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent;">
                 </div>
             </div>
@@ -552,17 +552,17 @@
         var div;
         
         if (isSenior && isFirstSenior) {
-            // Старший группы
+            // Старший группы — без крестика
             div = document.createElement('div');
             div.className = 'member-row senior';
             div.innerHTML = 
                 '<div class="member-fields senior-fields">' +
                     '<span class="member-number">1.</span>' +
                     '<input type="text" id="z_call_name" class="q-field member-senior" placeholder="Старший группы" value="' + (name || '') + '">' +
-                    '<span class="remove-btn" onclick="removeMember(this)">×</span>' +
                 '</div>';
         } else {
-            // Остальные участники
+            // Остальные участники — крестик только для №3 и выше
+            var canRemove = count > 0; // count = 0 это участник №2, count > 0 это №3 и далее
             div = document.createElement('div');
             div.className = 'member-row';
             div.innerHTML = 
@@ -571,7 +571,7 @@
                     '<input type="text" class="q-field member-name" placeholder="ФИО" value="' + (name || '') + '">' +
                     '<span class="add-contact-btn" onclick="addContactFromRow(this)" title="Добавить в контакты" style="color: #4caf50; cursor: pointer; font-weight: bold; font-size: 16px; padding: 0 5px;">+</span>' +
                     '<input type="text" class="q-field member-phone" placeholder="88009000000" value="' + (phone || '') + '">' +
-                    '<span class="remove-btn" onclick="removeMember(this)">×</span>' +
+                    (canRemove ? '<span class="remove-btn" onclick="removeMember(this)">×</span>' : '<span style="width: 20px;"></span>') +
                 '</div>';
         }
         
@@ -603,7 +603,24 @@
         if (event.data.type === 'set_global_data' && event.data.fields) {
             // Здесь можно добавить синхронизацию других общих полей, если появятся
         }
+        
+        // Очистка IndexedDB (при полной очистке формы)
+        if (event.data.type === 'clear_db') {
+            clearAllData();
+        }
     });
+
+    // Очистка всех данных (localStorage + IndexedDB)
+    function clearAllData() {
+        // Очистить IndexedDB
+        if (db) {
+            var transaction = db.transaction(["images"], "readwrite");
+            var store = transaction.objectStore("images");
+            store.clear();
+        }
+        orientImages = [];
+        renderOrientImages();
+    }
 
     // Перенумеровать участников
     function renumberMembers(container) {
@@ -659,7 +676,7 @@
             
             if (staffCoords || staffNum || staffFreq || staffOrient || staffAzimuth) {
                 payload.push({ label: 'ДАННЫЕ ШТАБА', value: '', isHeader: true });
-                if (staffCoords) payload.push({ label: 'Координаты', value: staffCoords });
+                if (staffCoords) payload.push({ label: 'Координаты штаба', value: staffCoords });
                 if (staffNum) payload.push({ label: 'Номер штаба', value: staffNum });
                 if (staffFreq) payload.push({ label: 'Частота связи', value: staffFreq });
                 if (staffOrient && staffAzimuth) {
@@ -667,7 +684,7 @@
                 } else if (staffAzimuth) {
                     payload.push({ label: 'Аварийный азимут', value: staffAzimuth });
                 } else if (staffOrient) {
-                    payload.push({ label: 'Аварийный ориентир', value: staffOrient });
+                    payload.push({ label: 'Аварийный азимут', value: staffOrient });
                 }
             }
             

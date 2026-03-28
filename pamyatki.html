@@ -37,12 +37,7 @@
             line-height: 1.4;
         }
         
-        .section-content ul {
-            margin: 4px 0;
-            padding-left: 20px;
-        }
-        
-        .section-content li {
+        .section-content div {
             margin-bottom: 2px;
             line-height: 1.3;
         }
@@ -51,6 +46,108 @@
             margin: 4px 0;
             line-height: 1.3;
         }
+        
+        /* Критичность настроек */
+        .priority-1 {
+            background: #a3a3a3;
+            border-left: 3px solid #000000;
+            padding: 4px 8px;
+            margin: 2px 0;
+            border-radius: 0 4px 4px 0;
+            font-weight: bold;
+        }
+        
+        .priority-2 {
+            background: #c5c5c5;
+            border-left: 3px solid #747474;
+            padding: 4px 8px;
+            margin: 2px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .priority-3 {
+            background: #f1f1f1;
+            border-left: 3px solid #dadada;
+            padding: 4px 8px;
+            margin: 2px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .nav-settings-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #2e7d32;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        /* Таблица фонетического алфавита */
+        .phonetic-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        .phonetic-table th {
+            background: #2e7d32;
+            color: white;
+            padding: 6px 8px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .phonetic-table td {
+            padding: 4px 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .phonetic-table tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+        
+        .phonetic-table td:first-child {
+            font-weight: bold;
+            width: 50px;
+        }
+        
+        .phonetic-table td:nth-child(2) {
+            font-weight: bold;
+        }
+        
+        /* Топознаки */
+        .topo-group {
+            margin-bottom: 15px;
+        }
+        
+        .topo-group-title {
+            font-weight: bold;
+            color: #2e7d32;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #4caf50;
+        }
+        
+        .topo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+        }
+        
+        .topo-item {
+            text-align: center;
+            font-size: 9px;
+            line-height: 1.2;
+        }
+        
+        .topo-item img {
+            width: 40px;
+            height: auto;
+            display: block;
+            margin: 0 auto 3px;
+        }
+        
     </style>
 </head>
 <body>
@@ -103,35 +200,222 @@
     </div>
 
     <!-- Блок 2 -->
-    <div class="section-block" id="section-2">
+    <div class="section-block open" id="section-2">
         <div class="section-header" onclick="toggleSection('2')">
-            <span>ПАМЯТКА 2</span>
+            <span>НАСТРОЙКИ НАВИГАТОРА</span>
             <span class="section-toggle"></span>
         </div>
         <div class="section-content">
-            <!-- Пустой блок -->
+           
+            <div style="margin-bottom: 8px;">
+                <span class="priority-1" style="padding: 2px 8px; margin-right: 10px;">Критические</span>
+                <span class="priority-2" style="padding: 2px 8px; margin-right: 10px;">Важные</span>
+                <span class="priority-3" style="padding: 2px 8px;">Неважные</span>
+            </div>
+            <div class="priority-2">Система › Спутниковая система › GPS + GLONASS</div>
+            <div class="priority-3">Система › Батарея АА › Щелочная</div>
+            <div class="priority-3">Экран › Таймаут подсветки › 15 секунд</div>
+            <div class="priority-3">Экран › Экономия заряда › Вкл.</div>
+            <div class="priority-3">Карта › Ориентация › Север сверху</div>
+            <div class="priority-3">Карта › Поля данных › Пользов. › При навигации › 2 мал. (Расст. до п.назн. и Пеленг)</div>
+            <div class="priority-3">Карта › Сведения о карте › Выбор карты</div>
+            <div class="priority-1">Треки › Путевой журнал › Запис., показ.</div>
+            <div class="priority-1">Треки › Метод записи › Авто</div>
+            <div class="priority-1">Треки › Интервал › Нормальный</div>
+            <div class="priority-1">Треки › Архивация › По заполнению</div>
+            <div class="priority-2">Единицы › Расстояние и скорость › Метрические</div>
+            <div class="priority-2">Формат координат › Формат координат › hddd.ddddd</div>
+            <div class="priority-1">Формат координат › Датум › WGS-84</div>
+            <div class="priority-1">Формат координат › Сфероид › WGS-84</div>
+            <div class="priority-2">Направление › Отображение / Экран › Градусы (цифры)</div>
+            <div class="priority-1">Направление › Северный полюс › Магнитный</div>
+            <div class="priority-3">Направление › Линия курса / стрелка › Курс (CDI)</div>
+            <div class="priority-3">Прокладка маршрута › Критерий расчета маршрута › Вне дорог</div>
+            <div class="priority-3">Прокладка маршрута › Расчет маршрута › Пешеход</div>
+            <div class="priority-3">Прокладка маршрута › Привязка к дороге › Нет</div>
+            <div class="priority-3">Прокладка маршрута › Переходы вне дорог › Авто</div>
+            <div class="priority-3">Менеджер треков › Grid_Line › Показать на карте</div>
         </div>
     </div>
 
     <!-- Блок 3 -->
     <div class="section-block" id="section-3">
         <div class="section-header" onclick="toggleSection('3')">
-            <span>ПАМЯТКА 3</span>
+            <span>ТОПОЗНАКИ</span>
             <span class="section-toggle"></span>
         </div>
         <div class="section-content">
-            <!-- Пустой блок -->
+            <!-- Дороги и транспорт -->
+            <div class="topo-group">
+                <div class="topo-group-title">Дороги и транспорт</div>
+                <div class="topo-grid">
+                    <div class="topo-item"><img src="топо/Автомагистраль.png" alt=""><span>Автомагистраль</span></div>
+                    <div class="topo-item"><img src="топо/Шоссе.png" alt=""><span>Шоссе</span></div>
+                    <div class="topo-item"><img src="топо/Усовершенствованное шоссе.png" alt=""><span>Усоверш. шоссе</span></div>
+                    <div class="topo-item"><img src="топо/Дорога грунтовая.png" alt=""><span>Грунтовая</span></div>
+                    <div class="topo-item"><img src="топо/Дорога грунтовая улучшенная.png" alt=""><span>Улучш. грунт.</span></div>
+                    <div class="topo-item"><img src="топо/Дорога полевая или лесная.jpg" alt=""><span>Полевая/лесная</span></div>
+                    <div class="topo-item"><img src="топо/Дорога с деревянным покрытием.png" alt=""><span>Дерев. покрытие</span></div>
+                    <div class="topo-item"><img src="топо/Железная дорога однопутная.png" alt=""><span>Ж/Д однопут.</span></div>
+                    <div class="topo-item"><img src="топо/Железная дорога двухпутная.png" alt=""><span>Ж/Д двухпут.</span></div>
+                    <div class="topo-item"><img src="топо/Железная дорога узкоколейная.png" alt=""><span>Ж/Д узкокол.</span></div>
+                    <div class="topo-item"><img src="топо/Железная дорога электрифицированная.png" alt=""><span>Ж/Д электрич.</span></div>
+                    <div class="topo-item"><img src="топо/Железная дорога разобранная.png" alt=""><span>Ж/Д разобр.</span></div>
+                    <div class="topo-item"><img src="топо/Мост пешеходный.png" alt=""><span>Мост пешеход.</span></div>
+                    <div class="topo-item"><img src="топо/Брод по дну реки.png" alt=""><span>Брод</span></div>
+                    <div class="topo-item"><img src="топо/Паромная переправа.png" alt=""><span>Паром</span></div>
+                </div>
+            </div>
+            
+            <!-- Постройки -->
+            <div class="topo-group">
+                <div class="topo-group-title">Постройки</div>
+                <div class="topo-grid">
+                    <div class="topo-item"><img src="топо/Редкая жилая застройка.jpg" alt=""><span>Жилая застр.</span></div>
+                    <div class="topo-item"><img src="топо/Отдельно стоящий дом.png" alt=""><span>Дом</span></div>
+                    <div class="topo-item"><img src="топо/Дом лесника.jpg" alt=""><span>Дом лесника</span></div>
+                    <div class="topo-item"><img src="топо/Церковь.jpg" alt=""><span>Церковь</span></div>
+                    <div class="topo-item"><img src="топо/Памятник.png" alt=""><span>Памятник</span></div>
+                    <div class="topo-item"><img src="топо/Кладбище.png" alt=""><span>Кладбище</span></div>
+                    <div class="topo-item"><img src="топо/Курган.png" alt=""><span>Курган</span></div>
+                    <div class="topo-item"><img src="топо/Развалины.jpg" alt=""><span>Развалины</span></div>
+                    <div class="topo-item"><img src="топо/Завод или фабрика.png" alt=""><span>Завод</span></div>
+                    <div class="topo-item"><img src="топо/Заводская, фабричная или другая труба.png" alt=""><span>Труба</span></div>
+                    <div class="topo-item"><img src="топо/Мельница ветряная.png" alt=""><span>Мельница</span></div>
+                    <div class="topo-item"><img src="топо/Вышка лёгкая (наблюдательная, прожекторная, спортивная и т.п.).png" alt=""><span>Вышка лёгк.</span></div>
+                    <div class="topo-item"><img src="топо/Вышка капитальная (водонапорная и т.п.).png" alt=""><span>Вышка капит.</span></div>
+                    <div class="topo-item"><img src="топо/Вышка нефтяная или газовая.png" alt=""><span>Вышка нефт.</span></div>
+                    <div class="topo-item"><img src="топо/Мачта радио или телевизионная.png" alt=""><span>Мачта</span></div>
+                    <div class="topo-item"><img src="топо/Метеорологическая станция.png" alt=""><span>Метеостанц.</span></div>
+                    <div class="topo-item"><img src="топо/Маяк береговой.jpg" alt=""><span>Маяк</span></div>
+                </div>
+            </div>
+            
+            <!-- Вода -->
+            <div class="topo-group">
+                <div class="topo-group-title">Вода</div>
+                <div class="topo-grid">
+                    <div class="topo-item"><img src="топо/Река.png" alt=""><span>Река</span></div>
+                    <div class="topo-item"><img src="топо/Река с обрывистым берегом.jpg" alt=""><span>Река обрывист.</span></div>
+                    <div class="topo-item"><img src="топо/Ручей.png" alt=""><span>Ручей</span></div>
+                    <div class="topo-item"><img src="топо/Сухой канал.jpg" alt=""><span>Сухой канал</span></div>
+                    <div class="topo-item"><img src="топо/Пересохшее русло реки или ручья.png" alt=""><span>Пересохшее русло</span></div>
+                    <div class="topo-item"><img src="топо/Болото проходимое.jpg" alt=""><span>Болото проход.</span></div>
+                    <div class="topo-item"><img src="топо/Болото непроходимое.jpg" alt=""><span>Болото непрох.</span></div>
+                    <div class="topo-item"><img src="топо/Источник оборудованный.png" alt=""><span>Ист. оборуд.</span></div>
+                    <div class="topo-item"><img src="топо/Источник не оборудованный.jpg" alt=""><span>Ист. не оборуд.</span></div>
+                    <div class="topo-item"><img src="топо/Колодец.png" alt=""><span>Колодец</span></div>
+                    <div class="topo-item"><img src="топо/Плотина.png" alt=""><span>Плотина</span></div>
+                </div>
+            </div>
+            
+            <!-- Рельеф и поверхности -->
+            <div class="topo-group">
+                <div class="topo-group-title">Рельеф и поверхности</div>
+                <div class="topo-grid">
+                    <div class="topo-item"><img src="топо/Горизонталь.png" alt=""><span>Горизонталь</span></div>
+                    <div class="topo-item"><img src="топо/Овраги и промоины.jpg" alt=""><span>Овраги</span></div>
+                    <div class="topo-item"><img src="топо/Обрыв скалистый.png" alt=""><span>Обрыв скалист.</span></div>
+                    <div class="topo-item"><img src="топо/Обрыв земляной.png" alt=""><span>Обрыв землян.</span></div>
+                    <div class="topo-item"><img src="топо/Карьер.png" alt=""><span>Карьер</span></div>
+                    <div class="topo-item"><img src="топо/Торфоразработка.png" alt=""><span>Торфоразраб.</span></div>
+                    <div class="topo-item"><img src="топо/Поверхность моховая.jpg" alt=""><span>Поверх. мох</span></div>
+                    <div class="topo-item"><img src="топо/Поверхности глинистые.jpg" alt=""><span>Поверх. глин.</span></div>
+                    <div class="topo-item"><img src="топо/Поверхности кочковатые.jpg" alt=""><span>Поверх. кочк.</span></div>
+                    <div class="topo-item"><img src="топо/Поверхности бугристые.jpg" alt=""><span>Поверх. бугр.</span></div>
+                    <div class="topo-item"><img src="топо/Поверхности с валунами.jpg" alt=""><span>Поверх. валун.</span></div>
+                </div>
+            </div>
+            
+            <!-- Растительность -->
+            <div class="topo-group">
+                <div class="topo-group-title">Растительность</div>
+                <div class="topo-grid">
+                    <div class="topo-item"><img src="топо/Горелый и сухостойный лес.jpg" alt=""><span>Лес горелый</span></div>
+                    <div class="topo-item"><img src="топо/Лес с буреломом.jpg" alt=""><span>Лес бурелом</span></div>
+                    <div class="topo-item"><img src="топо/Вырубка.jpg" alt=""><span>Вырубка</span></div>
+                    <div class="topo-item"><img src="топо/Лес высаженный.jpg" alt=""><span>Лес высажен.</span></div>
+                    <div class="topo-item"><img src="топо/Кустарнички (багульник, черника, вереск и др.).jpg" alt=""><span>Кустарнички</span></div>
+                    <div class="topo-item"><img src="топо/Отдельные группы кустарников.jpg" alt=""><span>Кустарники</span></div>
+                    <div class="topo-item"><img src="топо/Растительность травяная, луговая (разнотравье).jpg" alt=""><span>Трава луговая</span></div>
+                    <div class="topo-item"><img src="топо/Растительность травяная влаголюбивая (осока, пушица и др.).jpg" alt=""><span>Трава влаг.</span></div>
+                    <div class="topo-item"><img src="топо/Растительность степная (ковыль, типчак и др.).jpg" alt=""><span>Степь</span></div>
+                    <div class="topo-item"><img src="топо/Растительность высокотравная (высотой в метр и более).jpg" alt=""><span>Высокотравье</span></div>
+                    <div class="topo-item"><img src="топо/Растительность лишайниковая (ягель и др.).png" alt=""><span>Лишайник</span></div>
+                    <div class="topo-item"><img src="топо/Камыш и тросник.jpg" alt=""><span>Камыш</span></div>
+                    <div class="topo-item"><img src="топо/Заросли камышовые и тростниковые.jpg" alt=""><span>Заросли</span></div>
+                    <div class="topo-item"><img src="топо/Редколесье.jpg" alt=""><span>Редколесье</span></div>
+                    <div class="topo-item"><img src="топо/Земли заболоченные.jpg" alt=""><span>Заболочен.</span></div>
+                </div>
+            </div>
+            
+            <!-- Коммуникации -->
+            <div class="topo-group">
+                <div class="topo-group-title">Коммуникации</div>
+                <div class="topo-grid">
+                    <div class="topo-item"><img src="топо/Линия электропередач на деревянных опорах.jpg" alt=""><span>ЛЭП дерев.</span></div>
+                    <div class="topo-item"><img src="топо/Линия электропередач на металлических или железобетонных столбах.png" alt=""><span>ЛЭП металл.</span></div>
+                    <div class="topo-item"><img src="топо/Линия связи (телефон, телеграф, радиотрансляция).png" alt=""><span>Линия связи</span></div>
+                    <div class="topo-item"><img src="топо/Газопровод наземный.jpg" alt=""><span>Газопровод</span></div>
+                    <div class="topo-item"><img src="топо/Нефтепровод подземный.png" alt=""><span>Нефтепровод</span></div>
+                </div>
+            </div>
+            
+            <!-- Прочее -->
+            <div class="topo-group">
+                <div class="topo-group-title">Прочее</div>
+                <div class="topo-grid">
+                    <div class="topo-item"><img src="топо/Аэродром.jpg" alt=""><span>Аэродром</span></div>
+                    <div class="topo-item"><img src="топо/Просеки в лесу.jpg" alt=""><span>Просеки</span></div>
+                    <div class="topo-item"><img src="топо/Граница государственного заповедника.png" alt=""><span>Граница заповедн.</span></div>
+                    <div class="topo-item"><img src="топо/Отметка высоты над уровнем моря.png" alt=""><span>Отметка выс.</span></div>
+                    <div class="topo-item"><img src="топо/Вход в пещеру или грот.png" alt=""><span>Пещера</span></div>
+                    <div class="topo-item"><img src="топо/Пасека.png" alt=""><span>Пасека</span></div>
+                    <div class="topo-item"><img src="топо/Виноградники.jpg" alt=""><span>Виноградник</span></div>
+                    <div class="topo-item"><img src="топо/Фруктовый сад.jpg" alt=""><span>Фруктовый сад</span></div>
+                    <div class="topo-item"><img src="топо/Промышленные отходы.jpg" alt=""><span>Пром. отходы</span></div>
+                    <div class="topo-item"><img src="топо/Камень-ориентир.png" alt=""><span>Камень-ориент.</span></div>
+                    <div class="topo-item"><img src="топо/Железнодорожная станция.png" alt=""><span>Ж/Д станция</span></div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Блок 4 -->
-    <div class="section-block" id="section-4">
+    <div class="section-block open" id="section-4">
         <div class="section-header" onclick="toggleSection('4')">
-            <span>ПАМЯТКА 4</span>
+            <span>ФОНЕТИЧЕСКИЙ АЛФАВИТ</span>
             <span class="section-toggle"></span>
         </div>
         <div class="section-content">
-            <!-- Пустой блок -->
+            <table class="phonetic-table">
+                <tr><td>A</td><td>Álfa</td><td><strong>Аль</strong>-фа</td></tr>
+                <tr><td>B</td><td>Brávo</td><td><strong>Бра</strong>-во</td></tr>
+                <tr><td>C</td><td>Chárlie</td><td><strong>Чар</strong>-ли</td></tr>
+                <tr><td>D</td><td>Délta</td><td><strong>Дель</strong>-та</td></tr>
+                <tr><td>E</td><td>Écho</td><td><strong>Э</strong>-хо</td></tr>
+                <tr><td>F</td><td>Fóxtrot</td><td><strong>Фокс</strong>-трот</td></tr>
+                <tr><td>G</td><td>Gólf</td><td><strong>Гольф</strong></td></tr>
+                <tr><td>H</td><td>Hotél</td><td>Хо-<strong>тэл</strong></td></tr>
+                <tr><td>I</td><td>Índia</td><td><strong>Ин</strong>-ди-а</td></tr>
+                <tr><td>J</td><td>Júliet</td><td><strong>Джу</strong>-ли-етт</td></tr>
+                <tr><td>K</td><td>Kílo</td><td><strong>Ки</strong>-ло</td></tr>
+                <tr><td>L</td><td>Líma</td><td><strong>Ли</strong>-ма</td></tr>
+                <tr><td>M</td><td>Mike</td><td><strong>Майк</strong></td></tr>
+                <tr><td>N</td><td>Novémber</td><td>Но-<strong>вем</strong>-бер</td></tr>
+                <tr><td>O</td><td>Óscar</td><td><strong>Ос</strong>-кар</td></tr>
+                <tr><td>P</td><td>Papá</td><td>Па-<strong>па</strong></td></tr>
+                <tr><td>Q</td><td>Quebéc</td><td>Кве-<strong>бек</strong></td></tr>
+                <tr><td>R</td><td>Rómeo</td><td><strong>Ро</strong>-ме-о</td></tr>
+                <tr><td>S</td><td>Siérra</td><td><strong>Сье</strong>-ра</td></tr>
+                <tr><td>T</td><td>Tángo</td><td><strong>Тан</strong>-го</td></tr>
+                <tr><td>U</td><td>Úniform</td><td><strong>Ю</strong>-ни-форм</td></tr>
+                <tr><td>V</td><td>Víctor</td><td><strong>Вик</strong>-тор</td></tr>
+                <tr><td>W</td><td>Whískey</td><td><strong>Вис</strong>-ки</td></tr>
+                <tr><td>X</td><td>X-ray</td><td><strong>Экс</strong>-рей</td></tr>
+                <tr><td>Y</td><td>Yánkee</td><td><strong>Ян</strong>-ки</td></tr>
+                <tr><td>Z</td><td>Zúlu</td><td><strong>Зу</strong>-лу</td></tr>
+            </table>
         </div>
     </div>
 
@@ -194,6 +478,17 @@
     <div class="section-block" id="section-10">
         <div class="section-header" onclick="toggleSection('10')">
             <span>ПАМЯТКА 10</span>
+            <span class="section-toggle"></span>
+        </div>
+        <div class="section-content">
+            <!-- Пустой блок -->
+        </div>
+    </div>
+
+    <!-- Блок 11 -->
+    <div class="section-block" id="section-11">
+        <div class="section-header" onclick="toggleSection('11')">
+            <span>ПАМЯТКА 11</span>
             <span class="section-toggle"></span>
         </div>
         <div class="section-content">
