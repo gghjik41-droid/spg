@@ -1,6 +1,6 @@
 {
-  "name": "Опросники Группы Прозвона",
-  "short_name": "Опросники",
+  "name": "Старшим поисковых групп",
+  "short_name": "СПГ",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
