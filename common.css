@@ -153,6 +153,45 @@ input::-moz-placeholder, textarea::-moz-placeholder { color: #999; opacity: 1; }
    NPCR (Карточка группы)
    ======================== */
 
+/* Контейнер для двух полей в строку */
+.field-row {
+    display: flex;
+    height: 38px;
+    overflow: hidden;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fafafa;
+}
+
+/* Поля внутри контейнера-строки */
+.field-row-input {
+    flex: 1;
+    border: none;
+    padding: 0 10px;
+    height: 100%;
+    outline: none; 
+    background: transparent;
+    font-size: 16px;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.field-row-input:first-child {
+    border-right: 1px solid #eee;
+}
+
+.field-row-input:last-child {
+    border-right: none;
+}
+
+/* Вариант с другим соотношением ширины */
+.field-row-input.flex-1-5 {
+    flex: 1.5;
+}
+
+.field-row-input.flex-2 {
+    flex: 2;
+}
+
 .member-row { margin-bottom: 8px; }
 
 .member-fields {
@@ -198,6 +237,69 @@ input::-moz-placeholder, textarea::-moz-placeholder { color: #999; opacity: 1; }
 .senior-fields .member-number { color: #546e7a !important; border-right: 1px solid #cfd8dc; }
 .senior-fields input { flex: 1 !important; border: none !important; background: transparent !important; }
 .senior-fields input:focus { background: #fff !important; }
+
+/* Контейнер для действий под составом группы */
+.members-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Секция состава группы */
+.members-section {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #ccc;
+}
+
+/* Контейнер изображений ориентировок */
+.orient-images {
+    margin-top: 10px;
+}
+
+/* Кнопка добавления в контакты */
+.add-contact-btn {
+    color: #4caf50;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    padding: 0 5px;
+}
+
+.add-contact-btn:hover {
+    color: #388e3c;
+}
+
+/* Плейсхолдер для выравнивания */
+.spacer-20 {
+    width: 20px;
+    display: inline-block;
+}
+
+/* Кнопка обновления времени */
+.time-btn {
+    width: 38px;
+    height: 100%;
+    min-height: 38px;
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-left: 1px solid #ccc;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.time-btn:hover {
+    background: #43a047;
+}
+
+.time-btn-icon {
+    font-size: 14px;
+}
 
 /* ========================
    222222 (Опросник)

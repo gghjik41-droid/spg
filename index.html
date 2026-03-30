@@ -11,6 +11,35 @@
     <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
     <link rel="manifest" href="manifest.json">
 
+    <style>
+        /* Уведомление об обновлении */
+        #update-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #00c853;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            gap: 15px;
+            font-weight: bold;
+        }
+        #update-banner button {
+            background: white;
+            color: #00c853;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Опросники">
@@ -324,6 +353,11 @@
     <div class="loader-text">Загрузка задачи...</div>
 </div>
 
+<div id="update-banner">
+    <span>Доступно обновление приложения</span>
+    <button onclick="applyUpdate()">Обновить</button>
+</div>
+
 <div class="header-nav" id="menu">
     <div style="display: flex; gap: 5px; justify-self: start;">
         <button class="clear-btn" onclick="clearAllData()" title="Полная очистка">✕</button>
@@ -363,7 +397,7 @@
 
 <script>
     // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
-    var ORDER = ['npcr', 'molitva', 'pamyatki', 'opros', '222222', '333333', '444444', '555555'];
+    var ORDER = ['npcr', 'molitva', 'pamyatki', 'opros', '222222'];
     var globalZData = localStorage.getItem('pso_z_main') || "";
     var globalCallsignData = localStorage.getItem('pso_global_callsign_data') || ""; 
     var globalFields = JSON.parse(localStorage.getItem('pso_global_fields') || "{}"); 
@@ -736,9 +770,6 @@
         updateFinalOutput();
         setTimeout(adjustFrameOffset, 150);
 
-    // Убираем лоадер после завершения всей логики загрузки
-        setTimeout(() => toggleLoader(false), 500);
-        
         // Индикатор онлайн/офлайн
         updateOnlineStatus();
         window.addEventListener('online', updateOnlineStatus);
@@ -808,7 +839,15 @@
     window.addEventListener("drop", function(e) {
         e.preventDefault();
         var files = e.dataTransfer.files;
-        if (files.length > 0) importFromJson({ files: files });
+        if (files.length > 0) {
+            var file = files[0];
+            // Проверяем расширение и MIME-тип
+            if (!file.name.endsWith('.json') && file.type !== 'application/json') {
+                alert('Пожалуйста, выберите файл JSON');
+                return;
+            }
+            importFromJson({ files: files });
+        }
     }, false);
 
     if ('serviceWorker' in navigator) {
@@ -819,6 +858,30 @@
                 console.log('Ошибка SW:', err);
             });
         });
+
+        // Слушаем сообщения от Service Worker
+        navigator.serviceWorker.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'sw_updated') {
+                showUpdateBanner();
+            }
+        });
+    }
+
+    // Показать баннер обновления
+    function showUpdateBanner() {
+        var banner = document.getElementById('update-banner');
+        if (banner) banner.style.display = 'flex';
+    }
+
+    // Применить обновление
+    function applyUpdate() {
+        navigator.serviceWorker.ready.then(function(reg) {
+            reg.active.postMessage({ type: 'skipWaiting' });
+        });
+        // Перезагрузим страницу после краткой задержки
+        setTimeout(function() {
+            location.reload();
+        }, 500);
     }
 </script>
 

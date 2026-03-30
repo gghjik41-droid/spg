@@ -20,40 +20,31 @@
         <div class="section-content">
             <div class="field-group">
                 <label>Координаты штаба:</label>
-                <div style="display: flex; height: 38px; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: #fafafa;">
-                    <input type="text" id="f_staff_lat" class="q-field" 
-                           placeholder="54.000000" 
-                           style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent; border-right: 1px solid #eee;">
-                    
-                    <input type="text" id="f_staff_lon" class="q-field" 
-                           placeholder="082.000000" 
-                           style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent;">
+                <div class="field-row">
+                    <input type="text" id="f_staff_lat" class="q-field field-row-input" 
+                           placeholder="54.000000">
+                    <input type="text" id="f_staff_lon" class="q-field field-row-input" 
+                           placeholder="082.000000">
                 </div>
             </div>
             
             <div class="field-group">
                 <label>Номер телефона штаба, частота радиосвязи:</label>
-                <div style="display: flex; height: 38px; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: #fafafa;">
-                    <input type="text" id="f_staff_num" class="q-field" 
-                           placeholder="88009000000" 
-                           style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent; border-right: 1px solid #eee;">
-                    
-                    <input type="text" id="f_staff_freq" class="q-field" 
-                           placeholder="145.700" 
-                           style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent;">
+                <div class="field-row">
+                    <input type="text" id="f_staff_num" class="q-field field-row-input" 
+                           placeholder="88009000000">
+                    <input type="text" id="f_staff_freq" class="q-field field-row-input" 
+                           placeholder="145.700">
                 </div>
             </div>
             
             <div class="field-group">
                 <label>Линейный ориентир и аварийный азимут на него:</label>
-                <div style="display: flex; height: 38px; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: #fafafa;">
-                    <input type="text" id="f_staff_orient" class="q-field" 
-                           placeholder="Автодорога..." 
-                           style="flex: 1.5; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent; border-right: 1px solid #eee;">
-                    
-                    <input type="text" id="f_staff_azimuth" class="q-field" 
-                           placeholder="180 градусов" 
-                           style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent;">
+                <div class="field-row">
+                    <input type="text" id="f_staff_orient" class="q-field field-row-input flex-1-5" 
+                           placeholder="Автодорога...">
+                    <input type="text" id="f_staff_azimuth" class="q-field field-row-input" 
+                           placeholder="180 градусов">
                 </div>
             </div>
         </div>
@@ -94,7 +85,7 @@
             <a class="add-field-btn" onclick="document.getElementById('orient-file-input').click()">[+] Прикрепить ориентировку</a>
             
 
-            <div id="orient-images" style="margin-top: 10px;"></div>
+            <div id="orient-images" class="orient-images"></div>
         </div>
     </div>
 
@@ -408,6 +399,8 @@
     }
 
     // Загрузка картинок из IndexedDB
+    // Только синхронизирует массив ключей с IDB, не вызывает повторный рендер
+    // если orientImages уже заполнен из loadLocal()
     function loadOrientImages() {
         return new Promise(function(resolve) {
             if (!db) {
@@ -422,13 +415,17 @@
             var request = store.getAllKeys();
             
             request.onsuccess = function() {
-                orientImages = request.result || [];
-                renderOrientImages();
+                var keysFromDB = request.result || [];
+                // Если orientImages уже заполнен из localStorage — не перезаписываем и не рендерим повторно
+                if (orientImages.length === 0) {
+                    orientImages = keysFromDB;
+                    renderOrientImages();
+                }
                 resolve();
             };
             
             request.onerror = function() {
-                orientImages = [];
+                if (orientImages.length === 0) orientImages = [];
                 resolve();
             };
         });
@@ -495,10 +492,10 @@
                     '<label>Краткая формулировка:</label>' +
                     '<textarea class="q-field task-desc" placeholder="Опрос/оклейка/патруль/осмотр/отклик/прочес... + область" oninput="autoGrow(this)">' + (taskData ? (taskData.desc || '') : '') + '</textarea>' +
                 '</div>' +
-                '<div class="field-group" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc;">' +
+                '<div class="field-group members-section">' +
                     '<label>Состав группы:</label>' +
                     '<div class="members-container" id="members-' + taskId + '"></div>' +
-                    '<div style="display: flex; justify-content: space-between; align-items: center;">' +
+                    '<div class="members-actions">' +
                         '<a class="add-field-btn" onclick="addMemberToTask(\'' + taskId + '\')">[+] ДОБАВИТЬ участника</a>' +
                         (!isFirst ? '<a class="task-remove-link" onclick="removeTask(event, \'' + taskId + '\')">Удалить задачу</a>' : '') +
                     '</div>' +
@@ -569,9 +566,9 @@
                 '<div class="member-fields">' +
                     '<span class="member-number">' + (count + 2) + '.</span>' +
                     '<input type="text" class="q-field member-name" placeholder="ФИО" value="' + (name || '') + '">' +
-                    '<span class="add-contact-btn" onclick="addContactFromRow(this)" title="Добавить в контакты" style="color: #4caf50; cursor: pointer; font-weight: bold; font-size: 16px; padding: 0 5px;">+</span>' +
+                    '<span class="add-contact-btn" onclick="addContactFromRow(this)" title="Добавить в контакты">+</span>' +
                     '<input type="text" class="q-field member-phone" placeholder="88009000000" value="' + (phone || '') + '">' +
-                    (canRemove ? '<span class="remove-btn" onclick="removeMember(this)">×</span>' : '<span style="width: 20px;"></span>') +
+                    (canRemove ? '<span class="remove-btn" onclick="removeMember(this)">×</span>' : '<span class="spacer-20"></span>') +
                 '</div>';
         }
         
@@ -747,10 +744,8 @@
                 var seniorEl = firstTaskContainer.querySelector('.member-row.senior .member-senior');
                 if (seniorEl) firstTaskSenior = seniorEl.value.trim();
             }
-            console.log('NPCR: Сохраняем старшего:', firstTaskSenior);
             if (firstTaskSenior) {
                 localStorage.setItem('pso_senior_callsign', firstTaskSenior);
-                console.log('NPCR: Старший сохранён в localStorage');
             }
 
             saveLocal();
@@ -917,6 +912,7 @@
     window.onload = function() {
         openDB().then(function() {
             loadLocal().then(function() {
+                // loadOrientImages вызывается после loadLocal, но не перерисовывает если уже есть данные
                 loadOrientImages().then(function() {
                     autoGrow(document.getElementById('f_info_appearance'));
                     syncEverything();

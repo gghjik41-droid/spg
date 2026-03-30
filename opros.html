@@ -12,20 +12,14 @@
 
     <div class="field-group">
         <label>Позывной, дата и время опроса:</label>
-        <div style="display: flex; height: 38px; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: #fafafa;">
-            <input type="text" id="z_call_name" class="q-field q-field-no-output" 
-                   placeholder="Позывной" 
-                   style="flex: 1; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent; border-right: 1px solid #eee;">
-            
-            <input type="text" id="z_call_date" class="q-field q-field-no-output" 
-                   placeholder="Дата и время" 
-                   style="flex: 1.5; border: none; padding: 0 10px; height: 100%; outline: none; background: transparent;">
-            
+        <div class="field-row">
+            <input type="text" id="z_call_name" class="q-field q-field-no-output field-row-input" 
+                   placeholder="Позывной">
+            <input type="text" id="z_call_date" class="q-field q-field-no-output field-row-input flex-1-5" 
+                   placeholder="Дата и время">
             <button type="button" onclick="setCurrentTime()" title="Обновить время" 
-                    style="width: 38px; height: 100%; background: #4caf50; color: white; border: none; 
-                           border-left: 1px solid #ccc; cursor: pointer; display: flex; 
-                           align-items: center; justify-content: center;">
-                <span style="font-size: 14px;">▶</span>
+                    class="time-btn">
+                <span class="time-btn-icon">▶</span>
             </button>
         </div>
         <input type="hidden" id="z_call" class="q-field">
@@ -255,13 +249,18 @@
         });
     }
 
+    var scrollThrottleTimer = null;
     document.addEventListener('mousemove', function(e) {
         var targetField = e.target.closest('.q-field[data-index]');
         if (targetField) {
             var idx = targetField.getAttribute('data-index');
             if (idx !== null && idx !== lastSentIndex) {
-                lastSentIndex = idx;
-                window.parent.postMessage({ type: 'sync_scroll', source: SOURCE_ID, index: idx }, '*');
+                // Throttle: не отправляем чаще чем раз в 100мс
+                if (scrollThrottleTimer) clearTimeout(scrollThrottleTimer);
+                scrollThrottleTimer = setTimeout(function() {
+                    lastSentIndex = idx;
+                    window.parent.postMessage({ type: 'sync_scroll', source: SOURCE_ID, index: idx }, '*');
+                }, 100);
             }
         }
     });

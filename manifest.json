@@ -2,6 +2,7 @@
   "name": "Старшим поисковых групп",
   "short_name": "СПГ",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#37474f",
