@@ -1,5 +1,5 @@
 // Меняй это число при каждом обновлении, чтобы сбросить кэш
-const CACHE_VERSION = 27;
+const CACHE_VERSION = 28;
 const CACHE_NAME = 'pso-v' + CACHE_VERSION;
 
 // Список файлов для оффлайн-режима
@@ -11,6 +11,7 @@ const filesToCache = [
   './pamyatki.html',
   './opros.html',
   './common.css',
+  './index.css',
   './panzoom.min.js',
   './222222.html',
   './manifest.json',
@@ -116,31 +117,33 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Для изображений из папки топо/ - кэшируем при первом запросе
+  // Для изображений из папки топо/ - Network First (сначала сеть, потом кэш)
+  // Стратегия: отдаём из сети сразу, параллельно сохраняем в кэш
   if (shouldCacheDynamically(url.pathname)) {
     event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse; // Есть в кэше - отдаём сразу
-        }
-        
-        // Нет в кэше - загружаем из сети и сохраняем
-        return fetch(event.request)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              const responseToCache = networkResponse.clone();
-              caches.open(CACHE_NAME).then((cache) => {
-                cache.put(event.request, responseToCache);
-                console.log('Топознак сохранён в кэш:', url.pathname);
-              });
+      fetch(event.request)
+        .then((networkResponse) => {
+          // Сеть работает - отдаём ответ и параллельно сохраняем в кэш
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+              console.log('Топознак сохранён в кэш:', url.pathname);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Сеть недоступна - пробуем кэш
+          return caches.match(event.request).then((cachedResponse) => {
+            if (cachedResponse) {
+              console.log('Топознак из кэша (офлайн):', url.pathname);
+              return cachedResponse;
             }
-            return networkResponse;
-          })
-          .catch(() => {
-            // Сеть недоступна и нет в кэше - возвращаем пустой ответ
+            // Нет даже кэша - возвращаем пустой ответ
             return new Response('', { status: 404, statusText: 'Not Found' });
           });
-      })
+        })
     );
     return;
   }
