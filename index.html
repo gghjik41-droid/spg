@@ -382,6 +382,8 @@
      * Инициализация.
      */
     window.onload = function() {
+        console.log('Страница загружена, версия v32');
+        
         var savedZ = localStorage.getItem('pso_z_main') || "";
         globalZData = savedZ;
         var zTextarea = document.getElementById('z_text');
@@ -449,14 +451,14 @@
         
         if (navigator.onLine) {
             // Онлайн - зелёный
-            versionEl.textContent = 'v32';
+            versionEl.textContent = 'v33';
             versionEl.style.display = 'block';
             versionEl.style.background = '#4caf50';
             versionEl.style.color = 'white';
             versionEl.title = 'Онлайн - актуальная версия';
         } else {
             // Офлайн - красный
-            versionEl.textContent = 'v32';
+            versionEl.textContent = 'v33';
             versionEl.style.display = 'block';
             versionEl.style.background = '#f44336';
             versionEl.style.color = 'white';
@@ -537,6 +539,7 @@
 
         // Слушаем сообщения от Service Worker
         navigator.serviceWorker.addEventListener('message', function(event) {
+            console.log('Получено сообщение от SW:', event.data);
             if (event.data && event.data.type === 'sw_updated') {
                 showUpdateBanner();
             }
@@ -545,16 +548,23 @@
 
     // Показать баннер обновления
     function showUpdateBanner() {
+        console.log('showUpdateBanner вызвана');
+        
         // Проверяем, не откладывал ли пользователь обновление
         var dismissed = localStorage.getItem('update_dismissed');
+        console.log('update_dismissed:', dismissed);
+        
         if (dismissed) {
             var hoursPassed = (Date.now() - parseInt(dismissed)) / (1000 * 60 * 60);
+            console.log('Прошло часов:', hoursPassed);
             if (hoursPassed < 24) {
                 // Менее 24 часов — не показываем
+                console.log('Баннер заблокирован (менее 24ч)');
                 return;
             }
         }
         
+        console.log('Показываю баннер!');
         var banner = document.getElementById('update-banner');
         if (banner) banner.style.display = 'flex';
     }
