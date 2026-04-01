@@ -382,13 +382,7 @@
      * Инициализация.
      */
     window.onload = function() {
-        console.log('Страница загружена, версия v37');
-        
-        // При первой загрузке — подтверждаем текущую версию
-        if (!localStorage.getItem('confirmed_version')) {
-            localStorage.setItem('confirmed_version', 37);
-            console.log('Версия 37 подтверждена при первой загрузке');
-        }
+        console.log('Страница загружена, версия v38');
         
         // Проверяем версию SW
         if ('serviceWorker' in navigator) {
@@ -472,14 +466,14 @@
         
         if (navigator.onLine) {
             // Онлайн - зелёный
-            versionEl.textContent = 'v37';
+            versionEl.textContent = 'v38';
             versionEl.style.display = 'block';
             versionEl.style.background = '#4caf50';
             versionEl.style.color = 'white';
             versionEl.title = 'Онлайн - актуальная версия';
         } else {
             // Офлайн - красный
-            versionEl.textContent = 'v37';
+            versionEl.textContent = 'v38';
             versionEl.style.display = 'block';
             versionEl.style.background = '#f44336';
             versionEl.style.color = 'white';
@@ -587,7 +581,7 @@
         
         // Проверяем версию: если уже подтверждена — не показываем
         var confirmedVersion = localStorage.getItem('confirmed_version');
-        var currentVersion = 37; // v37
+        var currentVersion = 38; // v38
         console.log('Подтверждённая версия:', confirmedVersion, 'Текущая:', currentVersion);
         
         if (confirmedVersion == currentVersion) {
@@ -612,7 +606,7 @@
         // Убираем отметку об отклонении
         localStorage.removeItem('update_dismissed');
         // Подтверждаем текущую версию
-        localStorage.setItem('confirmed_version', 37);
+        localStorage.setItem('confirmed_version', 38);
         
         navigator.serviceWorker.ready.then(function(reg) {
             reg.active.postMessage({ type: 'skipWaiting' });
