@@ -382,7 +382,22 @@
      * Инициализация.
      */
     window.onload = function() {
-        console.log('Страница загружена, версия v34');
+        console.log('Страница загружена, версия v35');
+        
+        // Проверяем версию SW
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistration().then(reg => {
+                if (reg && reg.active) {
+                    console.log('Активный SW:', reg.active.scriptURL);
+                }
+                // Проверяем, есть ли waiting SW
+                if (reg && reg.waiting) {
+                    console.log('Есть waiting SW!', reg.waiting.scriptURL);
+                    // Есть новая версия!
+                    showUpdateBanner();
+                }
+            });
+        }
         
         var savedZ = localStorage.getItem('pso_z_main') || "";
         globalZData = savedZ;
@@ -451,14 +466,14 @@
         
         if (navigator.onLine) {
             // Онлайн - зелёный
-            versionEl.textContent = 'v34';
+            versionEl.textContent = 'v35';
             versionEl.style.display = 'block';
             versionEl.style.background = '#4caf50';
             versionEl.style.color = 'white';
             versionEl.title = 'Онлайн - актуальная версия';
         } else {
             // Офлайн - красный
-            versionEl.textContent = 'v34';
+            versionEl.textContent = 'v35';
             versionEl.style.display = 'block';
             versionEl.style.background = '#f44336';
             versionEl.style.color = 'white';
