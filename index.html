@@ -384,20 +384,8 @@
     window.onload = function() {
         console.log('Страница загружена, версия v38');
         
-        // Проверяем версию SW
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistration().then(reg => {
-                if (reg && reg.active) {
-                    console.log('Активный SW:', reg.active.scriptURL);
-                }
-                // Проверяем, есть ли waiting SW
-                if (reg && reg.waiting) {
-                    console.log('Есть waiting SW!', reg.waiting.scriptURL);
-                    // Есть новая версия!
-                    showUpdateBanner();
-                }
-            });
-        }
+        // Проверяем версию на сервере
+        checkServerVersion();
         
         var savedZ = localStorage.getItem('pso_z_main') || "";
         globalZData = savedZ;
@@ -551,14 +539,38 @@
                 console.log('Ошибка SW:', err);
             });
         });
+    }
 
-        // Слушаем сообщения от Service Worker
-        navigator.serviceWorker.addEventListener('message', function(event) {
-            console.log('Получено сообщение от SW:', event.data);
-            if (event.data && event.data.type === 'sw_updated') {
-                showUpdateBanner();
-            }
-        });
+    // Проверить версию на сервере
+    function checkServerVersion() {
+        // Сначала подтверждаем текущую версию, если ещё не подтверждена
+        var confirmedVersion = localStorage.getItem('confirmed_version');
+        if (!confirmedVersion) {
+            localStorage.setItem('confirmed_version', 38);
+            confirmedVersion = 38;
+        }
+        
+        // Пробуем получить версию с сервера (напрямую, без кэша)
+        fetch('version.json', { cache: 'reload' })
+            .then(function(response) {
+                if (!response.ok) return null;
+                return response.text();
+            })
+            .then(function(serverVersion) {
+                if (!serverVersion) return;
+                
+                var serverVer = parseInt(serverVersion.trim());
+                var currentVer = parseInt(confirmedVersion);
+                
+                console.log('Версия на сервере:', serverVer, 'Подтверждённая:', currentVer);
+                
+                if (serverVer > currentVer) {
+                    showUpdateBanner();
+                }
+            })
+            .catch(function(err) {
+                console.log('Не удалось проверить версию (офлайн или ошибка):', err);
+            });
     }
 
     // Показать баннер обновления
@@ -579,16 +591,6 @@
             }
         }
         
-        // Проверяем версию: если уже подтверждена — не показываем
-        var confirmedVersion = localStorage.getItem('confirmed_version');
-        var currentVersion = 38; // v38
-        console.log('Подтверждённая версия:', confirmedVersion, 'Текущая:', currentVersion);
-        
-        if (confirmedVersion == currentVersion) {
-            console.log('Версия уже подтверждена, баннер не нужен');
-            return;
-        }
-        
         console.log('Показываю баннер!');
         var banner = document.getElementById('update-banner');
         if (banner) banner.style.display = 'flex';
@@ -605,16 +607,63 @@
     function applyUpdate() {
         // Убираем отметку об отклонении
         localStorage.removeItem('update_dismissed');
-        // Подтверждаем текущую версию
-        localStorage.setItem('confirmed_version', 38);
         
-        navigator.serviceWorker.ready.then(function(reg) {
-            reg.active.postMessage({ type: 'skipWaiting' });
+        // Обновляем кэш вручную
+        updateCache().then(function() {
+        // Получаем версию с сервера и подтверждаем её
+        fetch('version.json', { cache: 'reload' })
+                .then(function(response) { return response.text(); })
+                .then(function(serverVersion) {
+                    var ver = parseInt(serverVersion.trim()) || 38;
+                    localStorage.setItem('confirmed_version', ver);
+                    console.log('Подтверждена версия:', ver);
+                    
+                    // Перезагружаем страницу
+                    location.reload();
+                })
+                .catch(function() {
+                    localStorage.setItem('confirmed_version', 38);
+                    location.reload();
+                });
         });
-        // Перезагрузим страницу после краткой задержки
-        setTimeout(function() {
-            location.reload();
-        }, 500);
+    }
+    
+    // Обновить кэш вручную
+    function updateCache() {
+        var filesToCache = [
+            './',
+            './index.html',
+            './npcr.html',
+            './molitva.html',
+            './pamyatki.html',
+            './opros.html',
+            './common.css',
+            './index.css',
+            './panzoom.min.js',
+            './222222.html',
+            './version.json',
+            './manifest.json',
+            './sw.js',
+            './favicon.png'
+        ];
+        
+        // Имя кэша фиксировано - используем всегда один кэш
+        var cacheName = 'pso-v38';
+        
+        return caches.open(cacheName).then(function(cache) {
+            console.log('Обновляю кэш...');
+            return Promise.allSettled(
+                filesToCache.map(function(url) {
+                    return fetch(url).then(function(response) {
+                        if (response.ok) {
+                            return cache.put(url, response);
+                        }
+                    });
+                })
+            ).then(function() {
+                console.log('Кэш обновлён');
+            });
+        });
     }
 </script>
 
