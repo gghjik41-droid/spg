@@ -201,12 +201,21 @@
      */
     function clearAllData() {
         if (confirm("Очистить все формы и результат?")) {
+            // Сохраняем данные версии (не трогаем при очистке)
+            var savedVersion = localStorage.getItem('confirmed_version');
+            var savedDismissed = localStorage.getItem('update_dismissed');
+            
             // Очистить IndexedDB в npcr.html
             var frame = document.getElementById('survey-frame');
             if (frame && frame.contentWindow) {
                 frame.contentWindow.postMessage({ type: 'clear_db' }, '*');
             }
             localStorage.clear();
+            
+            // Восстанавливаем данные версии
+            if (savedVersion) localStorage.setItem('confirmed_version', savedVersion);
+            if (savedDismissed) localStorage.setItem('update_dismissed', savedDismissed);
+            
             location.reload();
         }
     }
