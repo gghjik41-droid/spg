@@ -41,6 +41,39 @@
     opacity: 0.9;
 }
 
+/* Жёлтая полоска "не проверено и не одобрено" */
+.warning-stripe {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    background: #ffeb3b;
+    color: #333;
+    text-align: center;
+    font-size: 11px;
+    padding: 2px 8px;
+    z-index: 10000;
+    font-weight: bold; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px;
+}
+
+/* Сдвигаем шапку вниз, чтобы полоска была над ней */
+.header-nav {
+    top: 24px;
+}
+
+/* На мобильных тоже учитываем */
+@media (max-width: 900px) { 
+    .warning-stripe {
+        font-size: 10px;
+        padding: 1px 5px;
+    }
+    .header-nav {
+        top: 20px;
+    }
+}
+
 /* БЛОКИРОВКА ГОРИЗОНТАЛЬНОГО СКРОЛЛА И ЗУМА */
 html {
     /* Запрещаем прокрутку вбок на корню */
@@ -63,8 +96,8 @@ body {
     padding: 0; 
     background-color: #eceff1; 
     min-height: 100vh; 
-    display: flex; 
-    flex-direction: column; 
+    display: flex;
+    flex-direction: column;
     overflow-y: auto; 
     overflow-x: hidden; 
     touch-action: manipulation; 
@@ -188,13 +221,13 @@ body {
 /* ВЫДАЧА РЕЗУЛЬТАТА */
 .btn-copy { 
     background-color: #1976d2; 
-    color: white; 
+    color: white;
     border: none; 
     padding: 12px 15px; 
     border-radius: 4px; 
-    font-weight: bold; 
+    font-weight: bold;
     cursor: pointer; 
-    text-transform: uppercase; 
+    text-transform: uppercase;
     position: fixed; 
     top: calc(48px + env(safe-area-inset-top, 0px)); 
     right: 10px; 
