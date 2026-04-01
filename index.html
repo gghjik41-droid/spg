@@ -552,11 +552,6 @@
             confirmedVersion = 38;
         }
         
-        // Если версия подтверждена - показываем зелёную метку (обновлено)
-        if (parseInt(confirmedVersion) >= 40) {
-            document.body.classList.add('updated');
-        }
-        
         // Пробуем получить версию с сервера (напрямую, без кэша)
         fetch('version.json', { cache: 'reload' })
             .then(function(response) {
