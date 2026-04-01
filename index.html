@@ -26,8 +26,6 @@
     <span class="update-warning">⚠️ Не нажимайте при плохой связи</span>
 </div>
 
-<div class="warning-stripe">не проверено и не одобрено</div>
-
 <div class="header-nav" id="menu">
     <div style="display: flex; gap: 5px; justify-self: start;">
         <button class="clear-btn" onclick="clearAllData()" title="Полная очистка">✕</button>
@@ -384,7 +382,7 @@
      * Инициализация.
      */
     window.onload = function() {
-        console.log('Страница загружена, версия v39');
+        console.log('Страница загружена, версия v38');
         
         // Проверяем версию на сервере
         checkServerVersion();
@@ -456,14 +454,14 @@
         
         if (navigator.onLine) {
             // Онлайн - зелёный
-            versionEl.textContent = 'v39';
+            versionEl.textContent = 'v38';
             versionEl.style.display = 'block';
             versionEl.style.background = '#4caf50';
             versionEl.style.color = 'white';
             versionEl.title = 'Онлайн - актуальная версия';
         } else {
             // Офлайн - красный
-            versionEl.textContent = 'v39';
+            versionEl.textContent = 'v38';
             versionEl.style.display = 'block';
             versionEl.style.background = '#f44336';
             versionEl.style.color = 'white';
@@ -548,8 +546,8 @@
         // Сначала подтверждаем текущую версию, если ещё не подтверждена
         var confirmedVersion = localStorage.getItem('confirmed_version');
         if (!confirmedVersion) {
-            localStorage.setItem('confirmed_version', 39);
-            confirmedVersion = 39;
+            localStorage.setItem('confirmed_version', 38);
+            confirmedVersion = 38;
         }
         
         // Пробуем получить версию с сервера (напрямую, без кэша)
@@ -616,7 +614,7 @@
         fetch('version.json', { cache: 'reload' })
                 .then(function(response) { return response.text(); })
                 .then(function(serverVersion) {
-                    var ver = parseInt(serverVersion.trim()) || 39;
+                    var ver = parseInt(serverVersion.trim()) || 38;
                     localStorage.setItem('confirmed_version', ver);
                     console.log('Подтверждена версия:', ver);
                     
@@ -624,7 +622,7 @@
                     location.reload();
                 })
                 .catch(function() {
-                    localStorage.setItem('confirmed_version', 39);
+                    localStorage.setItem('confirmed_version', 38);
                     location.reload();
                 });
         });
@@ -650,7 +648,7 @@
         ];
         
         // Имя кэша фиксировано - используем всегда один кэш
-        var cacheName = 'pso-v39';
+        var cacheName = 'pso-v38';
         
         return caches.open(cacheName).then(function(cache) {
             console.log('Обновляю кэш...');
