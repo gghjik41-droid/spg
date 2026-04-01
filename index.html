@@ -382,7 +382,7 @@
      * Инициализация.
      */
     window.onload = function() {
-        console.log('Страница загружена, версия v32');
+        console.log('Страница загружена, версия v34');
         
         var savedZ = localStorage.getItem('pso_z_main') || "";
         globalZData = savedZ;
@@ -451,14 +451,14 @@
         
         if (navigator.onLine) {
             // Онлайн - зелёный
-            versionEl.textContent = 'v33';
+            versionEl.textContent = 'v34';
             versionEl.style.display = 'block';
             versionEl.style.background = '#4caf50';
             versionEl.style.color = 'white';
             versionEl.title = 'Онлайн - актуальная версия';
         } else {
             // Офлайн - красный
-            versionEl.textContent = 'v33';
+            versionEl.textContent = 'v34';
             versionEl.style.display = 'block';
             versionEl.style.background = '#f44336';
             versionEl.style.color = 'white';

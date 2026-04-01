@@ -1,5 +1,5 @@
 // Меняй это число при каждом обновлении, чтобы сбросить кэш
-const CACHE_VERSION = 33;
+const CACHE_VERSION = 34;
 const CACHE_NAME = 'pso-v' + CACHE_VERSION;
 
 // Список файлов для оффлайн-режима
@@ -26,6 +26,7 @@ const DYNAMIC_CACHE_PATTERNS = [
 
 // 1. Установка: сохраняем базу в кэш (с обработкой отсутствующих файлов)
 self.addEventListener('install', (event) => {
+  console.log('SW: Установка началась, версия', CACHE_VERSION);
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('Подготовка оффлайн-копии файлов...');
@@ -52,15 +53,19 @@ self.addEventListener('install', (event) => {
 
 // 2. Активация: чистим старье и уведомляем клиентов
 self.addEventListener('activate', (event) => {
+  console.log('SW: Активация началась');
   event.waitUntil(
     caches.keys().then((keys) => Promise.all(
       keys.map((key) => {
         if (key !== CACHE_NAME) return caches.delete(key);
       })
     )).then(() => {
+      console.log('SW: Чистка кэша завершена');
       // Уведомляем所有 клиентов о доступности обновления
       return self.clients.matchAll().then(clients => {
+        console.log('SW: Найдено клиентов:', clients.length);
         clients.forEach(client => {
+          console.log('SW: Отправляю sw_updated клиенту');
           client.postMessage({ type: 'sw_updated' });
         });
       });
