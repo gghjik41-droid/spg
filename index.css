@@ -330,3 +330,25 @@ body {
     100% { transform: rotate(360deg); }
 }
 .loader-hidden { opacity: 0; visibility: hidden; }
+
+/* Метка что версия обновлена (v40+) */
+body.updated .header-nav {
+    border-top: 3px solid #00c853;
+}
+body.updated::before {
+    content: '✓ ОБНОВЛЕНО';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #00c853;
+    color: white;
+    text-align: center;
+    font-size: 11px;
+    padding: 2px;
+    z-index: 10001;
+    font-weight: bold;
+}
+body.updated .header-nav {
+    top: 20px;
+}

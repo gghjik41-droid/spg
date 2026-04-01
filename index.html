@@ -452,16 +452,18 @@
         var versionEl = document.getElementById('version-indicator');
         if (!versionEl) return;
         
+        var confirmedVersion = localStorage.getItem('confirmed_version') || 38;
+        
         if (navigator.onLine) {
             // Онлайн - зелёный
-            versionEl.textContent = 'v38';
+            versionEl.textContent = 'v' + confirmedVersion;
             versionEl.style.display = 'block';
             versionEl.style.background = '#4caf50';
             versionEl.style.color = 'white';
             versionEl.title = 'Онлайн - актуальная версия';
         } else {
             // Офлайн - красный
-            versionEl.textContent = 'v38';
+            versionEl.textContent = 'v' + confirmedVersion;
             versionEl.style.display = 'block';
             versionEl.style.background = '#f44336';
             versionEl.style.color = 'white';
@@ -548,6 +550,11 @@
         if (!confirmedVersion) {
             localStorage.setItem('confirmed_version', 38);
             confirmedVersion = 38;
+        }
+        
+        // Если версия подтверждена - показываем зелёную метку (обновлено)
+        if (parseInt(confirmedVersion) >= 40) {
+            document.body.classList.add('updated');
         }
         
         // Пробуем получить версию с сервера (напрямую, без кэша)
