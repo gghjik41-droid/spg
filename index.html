@@ -382,12 +382,12 @@
      * Инициализация.
      */
     window.onload = function() {
-        console.log('Страница загружена, версия v36');
+        console.log('Страница загружена, версия v37');
         
         // При первой загрузке — подтверждаем текущую версию
         if (!localStorage.getItem('confirmed_version')) {
-            localStorage.setItem('confirmed_version', 36);
-            console.log('Версия 36 подтверждена при первой загрузке');
+            localStorage.setItem('confirmed_version', 37);
+            console.log('Версия 37 подтверждена при первой загрузке');
         }
         
         // Проверяем версию SW
@@ -472,14 +472,14 @@
         
         if (navigator.onLine) {
             // Онлайн - зелёный
-            versionEl.textContent = 'v36';
+            versionEl.textContent = 'v37';
             versionEl.style.display = 'block';
             versionEl.style.background = '#4caf50';
             versionEl.style.color = 'white';
             versionEl.title = 'Онлайн - актуальная версия';
         } else {
             // Офлайн - красный
-            versionEl.textContent = 'v36';
+            versionEl.textContent = 'v37';
             versionEl.style.display = 'block';
             versionEl.style.background = '#f44336';
             versionEl.style.color = 'white';
@@ -587,7 +587,7 @@
         
         // Проверяем версию: если уже подтверждена — не показываем
         var confirmedVersion = localStorage.getItem('confirmed_version');
-        var currentVersion = 36; // v36
+        var currentVersion = 37; // v37
         console.log('Подтверждённая версия:', confirmedVersion, 'Текущая:', currentVersion);
         
         if (confirmedVersion == currentVersion) {
@@ -612,7 +612,7 @@
         // Убираем отметку об отклонении
         localStorage.removeItem('update_dismissed');
         // Подтверждаем текущую версию
-        localStorage.setItem('confirmed_version', 36);
+        localStorage.setItem('confirmed_version', 37);
         
         navigator.serviceWorker.ready.then(function(reg) {
             reg.active.postMessage({ type: 'skipWaiting' });
