@@ -63,6 +63,9 @@
 </div>
 
 <script>
+    // --- КОНСТАНТЫ ---
+    var APP_VERSION = 44;  // Версия приложения - менять только здесь!
+
     // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
     var ORDER = ['npcr', 'molitva', 'pamyatki', 'opros', '222222'];
     var globalZData = localStorage.getItem('pso_z_main') || "";
@@ -391,7 +394,7 @@
      * Инициализация.
      */
     window.onload = function() {
-        console.log('Страница загружена, версия v38');
+        console.log('Страница загружена, версия v' + APP_VERSION);
         
         // Проверяем версию на сервере
         checkServerVersion();
@@ -461,7 +464,7 @@
         var versionEl = document.getElementById('version-indicator');
         if (!versionEl) return;
         
-        var confirmedVersion = localStorage.getItem('confirmed_version') || 38;
+        var confirmedVersion = localStorage.getItem('confirmed_version') || APP_VERSION;
         
         if (navigator.onLine) {
             // Онлайн - зелёный
@@ -557,8 +560,8 @@
         // Сначала подтверждаем текущую версию, если ещё не подтверждена
         var confirmedVersion = localStorage.getItem('confirmed_version');
         if (!confirmedVersion) {
-            localStorage.setItem('confirmed_version', 38);
-            confirmedVersion = 38;
+            localStorage.setItem('confirmed_version', APP_VERSION);
+            confirmedVersion = APP_VERSION;
         }
         
         // Пробуем получить версию с сервера (напрямую, без кэша)
@@ -625,7 +628,7 @@
         fetch('version.json', { cache: 'reload' })
                 .then(function(response) { return response.text(); })
                 .then(function(serverVersion) {
-                    var ver = parseInt(serverVersion.trim()) || 38;
+                    var ver = parseInt(serverVersion.trim()) || APP_VERSION;
                     localStorage.setItem('confirmed_version', ver);
                     console.log('Подтверждена версия:', ver);
                     
@@ -633,7 +636,7 @@
                     location.reload();
                 })
                 .catch(function() {
-                    localStorage.setItem('confirmed_version', 38);
+                    localStorage.setItem('confirmed_version', APP_VERSION);
                     location.reload();
                 });
         });
@@ -658,8 +661,8 @@
             './favicon.png'
         ];
         
-        // Имя кэша фиксировано - используем всегда один кэш
-        var cacheName = 'pso-v38';
+        // Имя кэша
+        var cacheName = 'pso-v' + APP_VERSION;
         
         return caches.open(cacheName).then(function(cache) {
             console.log('Обновляю кэш...');
