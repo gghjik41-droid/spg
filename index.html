@@ -44,8 +44,7 @@
         <button class="nav-btn" onclick="exportToJson()" title="Выгрузить JSON">💾</button>
         <button class="nav-btn" onclick="document.getElementById('import-file').click()" title="Загрузить JSON">📂</button>
         <input type="file" id="import-file" style="display:none" onchange="importFromJson(this)" accept=".json">
-        <span id="online-status" style="display: none; width: 10px; height: 10px; border-radius: 50%; background: #4caf50; flex-shrink: 0;" title="Онлайн"></span>
-        <span id="offline-status" style="display: none; width: 10px; height: 10px; border-radius: 50%; background: #f44336; flex-shrink: 0;" title="Офлайн"></span>
+        <span id="version-indicator" style="display: none; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; flex-shrink: 0;"></span>
     </div>
 </div>
 
@@ -445,14 +444,23 @@
     };
 
     function updateOnlineStatus() {
-        var onlineEl = document.getElementById('online-status');
-        var offlineEl = document.getElementById('offline-status');
+        var versionEl = document.getElementById('version-indicator');
+        if (!versionEl) return;
+        
         if (navigator.onLine) {
-            if (onlineEl) onlineEl.style.display = 'block';
-            if (offlineEl) offlineEl.style.display = 'none';
+            // Онлайн - зелёный
+            versionEl.textContent = 'v31';
+            versionEl.style.display = 'block';
+            versionEl.style.background = '#4caf50';
+            versionEl.style.color = 'white';
+            versionEl.title = 'Онлайн - актуальная версия';
         } else {
-            if (onlineEl) onlineEl.style.display = 'none';
-            if (offlineEl) offlineEl.style.display = 'block';
+            // Офлайн - красный
+            versionEl.textContent = 'v31';
+            versionEl.style.display = 'block';
+            versionEl.style.background = '#f44336';
+            versionEl.style.color = 'white';
+            versionEl.title = 'Офлайн - версия из кэша';
         }
     }
 
