@@ -64,7 +64,7 @@
 
 <script>
     // --- КОНСТАНТЫ ---
-    var APP_VERSION = 57;  // Версия приложения - менять только здесь!
+    var APP_VERSION = 44;  // Версия приложения - менять только здесь!
 
     // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
     var ORDER = ['npcr', 'molitva', 'pamyatki', 'opros', '222222'];
@@ -324,15 +324,6 @@
             if (resultSide) resultSide.style.display = 'block';
             if (btnCopy) btnCopy.style.display = 'flex';
         }
-
-        // SW сообщает о доступном обновлении
-        if (event.data.type === 'sw_updated') {
-            console.log('SW: Получено уведомление об обновлении, версия SW:', event.data.version);
-            var confirmedVersion = parseInt(localStorage.getItem('confirmed_version') || APP_VERSION);
-            if (event.data.version > confirmedVersion) {
-                showUpdateBanner();
-            }
-        }
     });
 
     /**
@@ -405,7 +396,7 @@
     window.onload = function() {
         console.log('Страница загружена, версия v' + APP_VERSION);
         
-        // Подтверждаем версию (устанавливаем если нет)
+        // Проверяем версию на сервере
         checkServerVersion();
         
         var savedZ = localStorage.getItem('pso_z_main') || "";
@@ -473,24 +464,17 @@
         var versionEl = document.getElementById('version-indicator');
         if (!versionEl) return;
         
-        var confirmedVersion = parseInt(localStorage.getItem('confirmed_version') || APP_VERSION);
-        var isOldVersion = confirmedVersion < APP_VERSION;
+        var confirmedVersion = localStorage.getItem('confirmed_version') || APP_VERSION;
         
         if (navigator.onLine) {
+            // Онлайн - зелёный
             versionEl.textContent = 'v' + confirmedVersion;
             versionEl.style.display = 'block';
-            if (isOldVersion) {
-                // Старая версия - оранжевый
-                versionEl.style.background = '#ff9800';
-                versionEl.style.color = 'white';
-                versionEl.title = 'Онлайн - устаревшая версия ' + confirmedVersion + ', доступна ' + APP_VERSION;
-            } else {
-                // Актуальная - зелёный
-                versionEl.style.background = '#4caf50';
-                versionEl.style.color = 'white';
-                versionEl.title = 'Онлайн - актуальная версия';
-            }
+            versionEl.style.background = '#4caf50';
+            versionEl.style.color = 'white';
+            versionEl.title = 'Онлайн - актуальная версия';
         } else {
+            // Офлайн - красный
             versionEl.textContent = 'v' + confirmedVersion;
             versionEl.style.display = 'block';
             versionEl.style.background = '#f44336';
@@ -562,66 +546,47 @@
     }, false);
 
     if ('serviceWorker' in navigator) {
-        // Регистрируем сразу
-        navigator.serviceWorker.register('sw.js').then(function(reg) {
-            console.log('ServiceWorker готов!', reg.scope);
-            
-            // Передаём подтверждённую версию в SW
-            function sendConfirmedVersion() {
-                var confirmedVer = localStorage.getItem('confirmed_version') || APP_VERSION;
-                var worker = reg.active || reg.installing;
-                if (worker) {
-                    worker.postMessage({
-                        type: 'set_confirmed_version',
-                        version: parseInt(confirmedVer)
-                    });
-                    console.log('Отправлена подтверждённая версия в SW:', confirmedVer);
-                }
-            }
-                
-            // Пробуем сразу
-            sendConfirmedVersion();
-            
-            // И через небольшую задержку
-            setTimeout(sendConfirmedVersion, 500);
-            setTimeout(sendConfirmedVersion, 1000);
-            setTimeout(sendConfirmedVersion, 2000);
-            
-            // И при активации
-            if (reg.installing) {
-                reg.installing.addEventListener('statechange', function(e) {
-                    if (e.target.state === 'activated') {
-                        setTimeout(sendConfirmedVersion, 500);
-                    }
-                });
-            }
-        }).catch(function(err) {
-            console.log('Ошибка SW:', err);
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('sw.js').then(function(reg) {
+                console.log('ServiceWorker готов!', reg.scope);
+            }).catch(function(err) {
+                console.log('Ошибка SW:', err);
+            });
         });
     }
-    
-    // Проверить версию
+
+    // Проверить версию на сервере
     function checkServerVersion() {
+        // Сначала подтверждаем текущую версию, если ещё не подтверждена
         var confirmedVersion = localStorage.getItem('confirmed_version');
-        
         if (!confirmedVersion) {
-            // Новый пользователь
             localStorage.setItem('confirmed_version', APP_VERSION);
             confirmedVersion = APP_VERSION;
-            console.log('Новый пользователь, подтверждена версия:', confirmedVersion);
-            return;
         }
         
-        confirmedVersion = parseInt(confirmedVersion);
-        console.log('Версия подтверждена:', confirmedVersion, '(APP_VERSION:', APP_VERSION + ')');
-        
-        // Проверяем - есть ли обновление
-        if (APP_VERSION > confirmedVersion) {
-            console.log('Доступно обновление!', APP_VERSION, '>', confirmedVersion);
-            showUpdateBanner();
-        }
+        // Пробуем получить версию с сервера (напрямую, без кэша)
+        fetch('version.json', { cache: 'reload' })
+            .then(function(response) {
+                if (!response.ok) return null;
+                return response.text();
+            })
+            .then(function(serverVersion) {
+                if (!serverVersion) return;
+                
+                var serverVer = parseInt(serverVersion.trim());
+                var currentVer = parseInt(confirmedVersion);
+                
+                console.log('Версия на сервере:', serverVer, 'Подтверждённая:', currentVer);
+                
+                if (serverVer > currentVer) {
+                    showUpdateBanner();
+                }
+            })
+            .catch(function(err) {
+                console.log('Не удалось проверить версию (офлайн или ошибка):', err);
+            });
     }
-        
+
     // Показать баннер обновления
     function showUpdateBanner() {
         console.log('showUpdateBanner вызвана');
@@ -657,45 +622,27 @@
         // Убираем отметку об отклонении
         localStorage.removeItem('update_dismissed');
         
-        // Подтверждаем текущую версию
-        localStorage.setItem('confirmed_version', APP_VERSION);
-        
-        // "Новый" кэш (pso-v-next) становится подтверждённым
-        var confirmedCacheName = 'pso-v' + APP_VERSION;
-        
-        caches.open('pso-v-next').then(function(nextCache) {
-            // Создаём именной кэш и копируем туда всё из pso-v-next
-            return caches.open(confirmedCacheName).then(function(confirmedCache) {
-                return nextCache.keys().then(function(requests) {
-                    return Promise.all(requests.map(function(request) {
-                        return nextCache.match(request).then(function(response) {
-                            if (response) {
-                                return confirmedCache.put(request, response);
-                            }
-                        });
-                    }));
+        // Обновляем кэш вручную
+        updateCache().then(function() {
+        // Получаем версию с сервера и подтверждаем её
+        fetch('version.json', { cache: 'reload' })
+                .then(function(response) { return response.text(); })
+                .then(function(serverVersion) {
+                    var ver = parseInt(serverVersion.trim()) || APP_VERSION;
+                    localStorage.setItem('confirmed_version', ver);
+                    console.log('Подтверждена версия:', ver);
+                    
+                    // Перезагружаем страницу
+                    location.reload();
+                })
+                .catch(function() {
+                    localStorage.setItem('confirmed_version', APP_VERSION);
+                    location.reload();
                 });
-            }).then(function() {
-                // Удаляем pso-v-next
-                return caches.delete('pso-v-next');
-            }).then(function() {
-                console.log('Подтверждена версия:', APP_VERSION);
-                
-                // Сообщаем SW о новой версии
-                if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.controller.postMessage({
-                        type: 'set_confirmed_version',
-                        version: APP_VERSION
-                    });
-                }
-                
-                // Перезагружаем страницу
-                location.reload();
-            });
         });
     }
     
-    // Обновить "новый" кэш (pso-v-next)
+    // Обновить кэш вручную
     function updateCache() {
         var filesToCache = [
             './',
@@ -708,13 +655,14 @@
             './index.css',
             './panzoom.min.js',
             './222222.html',
+            './version.json',
             './manifest.json',
             './sw.js',
             './favicon.png'
         ];
         
-        // Всегда обновляем pso-v-next (перезаписываем старый)
-        var cacheName = 'pso-v-next';
+        // Имя кэша
+        var cacheName = 'pso-v' + APP_VERSION;
         
         return caches.open(cacheName).then(function(cache) {
             console.log('Обновляю кэш...');
