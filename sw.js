@@ -1,5 +1,5 @@
 // Меняй это число при каждом обновлении
-const CACHE_VERSION = 50;
+const CACHE_VERSION = 51;
 const CACHE_NAME = 'pso-v-next';  // Всегда один "новый" кэш
 
 // Список файлов для оффлайн-режима
