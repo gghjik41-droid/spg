@@ -88,35 +88,37 @@ function shouldCacheDynamically(url) {
   return DYNAMIC_CACHE_PATTERNS.some(pattern => pattern.test(url));
 }
 
-// 3. Стратегия "Network First" (Сначала сеть, потом кэш)
+// 3. Стратегия "Cache First" (Сначала кэш, потом сеть)
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Для навигационных запросов - сначала сеть
+  // Для навигационных запросов - сначала кэш, потом сеть
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          // Сеть работает - обновляем кэш
-          if (networkResponse && networkResponse.status === 200) {
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
+      caches.match(event.request)
+        .then((cachedResponse) => {
+          if (cachedResponse) {
+            console.log('Отдали из кэша:', event.request.url);
+            // Параллельно проверяем сеть для обновления (но не сохраняем автоматически)
+            fetch(event.request).catch(() => {});
+            return cachedResponse;
           }
-          return networkResponse;
-        })
-        .catch(() => {
-          // Сеть недоступна - пробуем кэш
-          return caches.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) {
-              console.log('Офлайн, отдали из кэша:', event.request.url);
-              return cachedResponse;
-            }
-            // Нет даже кэша - показываем ошибку или главную
-            return caches.match('./index.html');
-          });
+          // Нет в кэше - идём в сеть
+          return fetch(event.request)
+            .then((networkResponse) => {
+              if (networkResponse && networkResponse.status === 200) {
+                const responseToCache = networkResponse.clone();
+                caches.open(CACHE_NAME).then((cache) => {
+                  cache.put(event.request, responseToCache);
+                });
+              }
+              return networkResponse;
+            })
+            .catch(() => {
+              // Сеть недоступна, кэша нет - показываем главную
+              return caches.match('./index.html');
+            });
         })
     );
     return;
