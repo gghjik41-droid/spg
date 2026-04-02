@@ -64,7 +64,7 @@
 
 <script>
     // --- КОНСТАНТЫ ---
-    var APP_VERSION = 55;  // Версия приложения - менять только здесь!
+    var APP_VERSION = 56;  // Версия приложения - менять только здесь!
 
     // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
     var ORDER = ['npcr', 'molitva', 'pamyatki', 'opros', '222222'];
@@ -599,16 +599,26 @@
         });
     }
 
-    // Проверить версию - теперь через SW (sw_updated), эта функция для совместимости
+    // Проверить версию
     function checkServerVersion() {
-        // Подтверждаем текущую версию, если ещё не подтверждена
         var confirmedVersion = localStorage.getItem('confirmed_version');
+        
         if (!confirmedVersion) {
+            // Новый пользователь
             localStorage.setItem('confirmed_version', APP_VERSION);
             confirmedVersion = APP_VERSION;
-            console.log('Установлена новая подтверждённая версия:', confirmedVersion);
+            console.log('Новый пользователь, подтверждена версия:', confirmedVersion);
+            return;
         }
+        
+        confirmedVersion = parseInt(confirmedVersion);
         console.log('Версия подтверждена:', confirmedVersion, '(APP_VERSION:', APP_VERSION + ')');
+        
+        // Проверяем - есть ли обновление
+        if (APP_VERSION > confirmedVersion) {
+            console.log('Доступно обновление!', APP_VERSION, '>', confirmedVersion);
+            showUpdateBanner();
+        }
     }
         
     // Показать баннер обновления
