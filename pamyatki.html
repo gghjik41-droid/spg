@@ -148,22 +148,63 @@
             margin: 0 auto 3px;
         }
         
+        /* Группа Следы + Артефакты */
+        .traces-group {
+            margin: 0 4px 4px 4px;
+        }
+        
+        .traces-group-headers {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .traces-group-headers .section-header {
+            flex: 1;
+            margin: 0;
+            border-radius: 0;
+        }
+        
+        .traces-group-headers .section-header:first-child {
+            border-radius: 6px 0 0 6px;
+        }
+        
+        .traces-group-headers .section-header:last-child {
+            border-radius: 0 6px 6px 0;
+        }
+        
+        .traces-group-contents .section-block {
+            margin-bottom: 4px;
+        }
+        
+        /* Стили для заголовков внутри группы - активное состояние */
+        .traces-group-headers .section-block#section-1.open .section-header,
+        .traces-group-headers .section-block#section-1b.open .section-header {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
     </style>
 </head>
 <body>
 
     <!-- <h2>Памятки</h2> -->
 
-    <!-- Блок 1 -->
-    <div class="section-block" id="section-1">
-        <div class="section-header" onclick="toggleSection('1')">
-            <span>СЛЕДЫ И АРТЕФАКТЫ</span>
-            <span class="section-toggle"></span>
+    <!-- Блок 1: СЛЕДЫ + АРТЕФАКТЫ (общая строка заголовков) -->
+    <div class="traces-group">
+        <div class="traces-group-headers">
+            <div class="section-header" onclick="toggleSection('1')">
+                <span>СЛЕДЫ</span>
+                <span class="section-toggle"></span>
+            </div>
+            <div class="section-header" onclick="toggleSection('1b')">
+                <span>АРТЕФАКТЫ</span>
+                <span class="section-toggle"></span>
+            </div>
         </div>
-        <div class="section-content">
-            <div class="memo-task">О найденных артефактах на задаче сообщать в штаб.</div>
-            
-            <p><strong>Нашли след → Остановиться → Осмотреть → Сравнить с вводными.</strong></p>
+        <div class="traces-group-contents">
+            <div class="section-block" id="section-1" data-group="traces-artifacts">
+                <div class="section-content">
+                    <p><strong>Нашли след → Остановиться → Осмотреть → Сравнить с вводными.</strong></p>
             
             <p style="font-style: italic; border-left: 3px solid #000000; padding-left: 10px;">
                 <strong>ВАЖНО:</strong> След из категории "наш" - защитить от уничтожения: накрыть пленкой/пакетом, сделать обозначения ветками или из подручных средств, повесить опознавательные предметы.
@@ -196,6 +237,44 @@
             
             <p style="margin-top: 15px; color: #2e7d32; font-weight: bold;">СЛЕД "НЕ НАШ":</p>
             <p>Запомнили детали → Запомнили место → Продолжили выполнение задачи.</p>
+                </div>
+            </div>
+            
+            <div class="section-block" id="section-1b" data-group="traces-artifacts">
+                <div class="section-content">
+                    <div class="memo-task">О найденных артефактах на задаче сообщать в штаб.</div>
+                    
+                    <p><strong>Нашли артефакт → Группа СТОП → Осмотреть (не трогать) → Сравнить с вводными.</strong></p>
+                    
+                    <p style="font-style: italic; border-left: 3px solid #000000; padding-left: 10px;">
+                        <strong>ВАЖНО:</strong> БВП был здесь и оставил следы. Пока работаем с артефактом, группа осматривается, не перемещаясь. Ищет следы обуви, сходы, тропы, индикаторы движения.
+                    </p>
+                    
+                    <p style="margin-top: 16px; color: #2e7d32; font-weight: bold;">АРТЕФАКТ НАШ:</p>
+                    <p><i>Сошелся хотя бы один признак из вводных.</i></p>
+                    <p><strong>Действия:</strong></p>
+                    <ul>
+                        <li>Сфотографировать артефакт</li>
+                        <li>Отправить фото в штаб</li>
+                        <li>Если интернета нет, подробно описать по радиосвязи. Отослать фото при появлении интернета</li>
+                        <li>Отметить точку в навигаторе</li>
+                        <li>Отметить артефакт на месте</li>
+                        <li>Все манипуляции с артефактом ТОЛЬКО с одобрения штаба. Артефакт трогаем только в перчатках.</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px; color: #2e7d32; font-weight: bold;">Медиа:</p>
+                    <ul>
+                        <li>Фото артефакта со всех сторон</li>
+                        <li>Фото под артефактом</li>
+                        <li>Фото местности и наличия кроны</li>
+                        <li>Видео местности (обязательно виден артефакт и все обозначения)</li>
+                    </ul>
+                    <p>Направляем медиа в штаб и ждем дальнейших указаний.</p>
+                    
+                    <p style="margin-top: 15px; font-weight: bold; color: #c62828;">ВСЕГДА КОНТРОЛИРУЕМ ГРУППУ, НЕ ЗАТАПТЫВАЕМ МЕСТО ВБЛИЗИ АРТЕФАКТА</p>
+                    <p><i>Возможно есть следы, которые вы не увидели, но сможет другая группа.</i></p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -511,9 +590,45 @@
     // Переключение секций
     function toggleSection(section) {
         var block = document.getElementById('section-' + section);
+        var isOpening = !block.classList.contains('open');
+        
+        // Логика аккордеона: если блок имеет группу - закрыть другие в той же группе
+        var group = block.getAttribute('data-group');
+        if (group && isOpening) {
+            document.querySelectorAll('.section-block[data-group="' + group + '"]').forEach(function(gBlock) {
+                if (gBlock !== block) {
+                    gBlock.classList.remove('open');
+                }
+            });
+        }
+        
         block.classList.toggle('open');
+        
+        // Обновить стрелочки в заголовках группы traces-group
+        updateGroupToggles();
+        
         saveSections();
         sendHeight();
+    }
+
+    // Обновить стрелочки в групповых заголовках
+    function updateGroupToggles() {
+        document.querySelectorAll('.traces-group-headers .section-header').forEach(function(header) {
+            var span = header.querySelector('.section-toggle');
+            if (span) {
+                // Найти связанный section-block
+                var headerText = header.querySelector('span').textContent.trim();
+                var targetSection = headerText === 'СЛЕДЫ' ? '1' : '1b';
+                var block = document.getElementById('section-' + targetSection);
+                if (block && block.classList.contains('open')) {
+                    span.style.transform = 'rotate(-135deg)';
+                    span.style.marginTop = '-5px';
+                } else {
+                    span.style.transform = 'rotate(45deg)';
+                    span.style.marginTop = '0';
+                }
+            }
+        });
     }
 
     // Сохранить состояние секций
@@ -555,6 +670,7 @@
     // Инициализация
     window.onload = function() {
         loadSections();
+        updateGroupToggles();
         hideResult();
         sendHeight();
     };
