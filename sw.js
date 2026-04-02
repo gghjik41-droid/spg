@@ -101,11 +101,30 @@ function getConfirmedVersionFromClient() {
     };
     self.addEventListener('message', handler);
     
-    // Таймаут - если клиент не ответил за 3 секунды, используем CACHE_VERSION
-    setTimeout(() => {
+    // Таймаут - ищем самую старую версию в кэшах
+    setTimeout(async () => {
       if (confirmedVersion === null) {
-        confirmedVersion = CACHE_VERSION;
-        console.log('[SW] Таймаут, используем CACHE_VERSION:', confirmedVersion);
+        // Ищем минимальную версию
+        const keys = await caches.keys();
+        let minVersion = 0;
+        for (const key of keys) {
+          if (key === 'pso-v-next') continue;
+          const match = key.match(/^pso-v(\d+)$/);
+          if (match) {
+            const v = parseInt(match[1]);
+            if (v < minVersion || minVersion === 0) {
+              minVersion = v;
+            }
+          }
+        }
+        
+        if (minVersion > 0) {
+          confirmedVersion = minVersion;
+          console.log('[SW] Таймаут, использую старую версию из кэша:', confirmedVersion);
+        } else {
+          confirmedVersion = CACHE_VERSION;
+          console.log('[SW] Таймаут, нет кэша, использую CACHE_VERSION:', confirmedVersion);
+        }
         resolve(confirmedVersion);
       }
     }, 3000);
@@ -167,17 +186,21 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
+  console.log('[SW] Перехвачен fetch, confirmedVersion:', confirmedVersion, 'CACHE_VERSION:', CACHE_VERSION);
+
   // Ждём версию от клиента перед обработкой fetch
   if (confirmedVersion === null) {
+    console.log('[SW] Версия не получена, ждём...');
     event.respondWith(
       getConfirmedVersionFromClient().then((version) => {
-        console.log('[SW] Версия получена, обрабатываем fetch');
+        console.log('[SW] Версия ПОЛУЧЕНА:', version, 'теперь обрабатываем fetch');
         return handleFetch(event);
       })
     );
     return;
   }
 
+  console.log('[SW] Версия уже есть, сразу обрабатываем fetch');
   return handleFetch(event);
 });
 
@@ -188,6 +211,8 @@ async function handleFetch(event) {
   // Проверяем - если подтверждённая версия старше текущей, используем ТОЛЬКО её
   // Не даём новой версии отобраться без согласия!
   const usingOldVersion = confirmedVersion < CACHE_VERSION;
+  
+  console.log('[SW] handleFetch: confirmedVersion:', confirmedVersion, 'CACHE_VERSION:', CACHE_VERSION, 'usingOldVersion:', usingOldVersion);
   
   debugLog('Fetch', { url: request.url, confirmedVersion: confirmedVersion, cacheVersion: CACHE_VERSION, usingOldVersion: usingOldVersion });
 
