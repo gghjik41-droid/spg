@@ -81,7 +81,7 @@ body {
 
 /* ШАПКА И НАВИГАЦИЯ */
 .header-nav { 
-    background-color: #37474f; 
+    background-color: #ff9900; 
     padding: calc(4px + env(safe-area-inset-top, 0px)) 8px 4px 8px; 
     display: grid; 
     grid-template-columns: 1fr auto 1fr; 
