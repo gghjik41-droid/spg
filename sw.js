@@ -1,5 +1,5 @@
 // Меняй это число при каждом обновлении
-const CACHE_VERSION = 51;
+const CACHE_VERSION = 52;
 const CACHE_NAME = 'pso-v-next';  // Всегда один "новый" кэш
 
 // Список файлов для оффлайн-режима
@@ -81,8 +81,8 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Подтверждённая версия (по умолчанию - текущая)
-let confirmedVersion = CACHE_VERSION;
+// Подтверждённая версия (по умолчанию - 0, найдём при первом запросе)
+let confirmedVersion = 0;
 
 // Проверка, нужно ли динамически кэшировать URL
 function shouldCacheDynamically(url) {
@@ -94,70 +94,135 @@ function getConfirmedCacheName() {
   return 'pso-v' + confirmedVersion;
 }
 
+// Найти самый старый доступный кэш (подтверждённый пользователем)
+async function findOldestCache() {
+  const keys = await caches.keys();
+  let oldestVersion = 0;
+  let oldestCacheName = null;
+  
+  for (const key of keys) {
+    const match = key.match(/^pso-v(\d+)$/);
+    if (match) {
+      const v = parseInt(match[1]);
+      // Ищем минимальную версию (самый старый подтверждённый кэш)
+      if (v < oldestVersion || oldestVersion === 0) {
+        oldestVersion = v;
+        oldestCacheName = key;
+      }
+    }
+  }
+  
+  console.log('[SW] Найден подтверждённый кэш:', oldestCacheName, 'версия', oldestVersion);
+  return oldestVersion;
+}
+
+// Инициализация при старте
+async function initConfirmedVersion() {
+  if (confirmedVersion === 0) {
+    confirmedVersion = await findOldestCache();
+    console.log('[SW] Инициализирован confirmedVersion:', confirmedVersion);
+  }
+}
+
+// Для отладки
+function debugLog(msg, data) {
+  console.log('[DEBUG] ' + msg, data || '');
+}
+
 // 3. Стратегия: пользователь видит старую версию, пока не подтвердит обновление
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Для навигационных запросов - сначала кэш подтверждённой версии
-  if (event.request.mode === 'navigate') {
+  // Инициализируем версию при первом запросе
+  if (confirmedVersion === 0) {
     event.respondWith(
-      caches.match(event.request, { cacheName: getConfirmedCacheName() })
-        .then((cachedResponse) => {
-          if (cachedResponse) {
-            console.log('Отдали из кэша (навигация):', event.request.url);
-            return cachedResponse;
-          }
-          // Нет в кэше подтверждённой версии - пробуем сеть
-          return fetch(event.request)
-            .then((networkResponse) => {
-              if (networkResponse && networkResponse.status === 200) {
-                const responseToCache = networkResponse.clone();
-                caches.open(CACHE_NAME).then((cache) => {
-                  cache.put(event.request, responseToCache);
-                });
-              }
-              return networkResponse;
-            })
-            .catch(() => {
-              // Сеть недоступна - показываем главную
-              return caches.match('./index.html');
-            });
-        })
+      (async () => {
+        const foundVersion = await findOldestCache();
+        if (foundVersion > 0) {
+          confirmedVersion = foundVersion;
+        } else {
+          // Нет кэша вообще - новый пользователь, используем текущую версию
+          confirmedVersion = CACHE_VERSION;
+        }
+        console.log('[SW] Инициализирован confirmedVersion:', confirmedVersion);
+        return handleFetch(event);
+      })()
     );
     return;
   }
 
-  // Для статических ресурсов - сначала подтверждённый кэш, потом "новый" (pso-v-next)
-  event.respondWith(
-    caches.match(event.request, { cacheName: getConfirmedCacheName() })
+  return handleFetch(event);
+});
+
+async function handleFetch(event) {
+  const url = new URL(event.request.url);
+  const request = event.request;
+  
+  debugLog('Fetch', { url: request.url, confirmedVersion: confirmedVersion, cacheVersion: CACHE_VERSION });
+
+  // Для навигационных запросов - сначала кэш подтверждённой версии, иначе pso-v-next
+  if (request.mode === 'navigate') {
+    return caches.match(request, { cacheName: getConfirmedCacheName() })
       .then((cachedResponse) => {
         if (cachedResponse) {
-          console.log('Отдали из подтверждённого кэша:', event.request.url);
+          console.log('Отдали из подтверждённого кэша (навигация):', request.url);
           return cachedResponse;
         }
-        
-        // Нет в подтверждённом - пробуем "новый"
-        return caches.match(event.request, { cacheName: CACHE_NAME })
+        // Нет в подтверждённом - пробуем pso-v-next
+        return caches.match(request, { cacheName: CACHE_NAME })
           .then((nextResponse) => {
             if (nextResponse) {
-              console.log('Отдали из "нового" кэша:', event.request.url);
+              console.log('Отдали из pso-v-next (навигация):', request.url);
               return nextResponse;
             }
-            
-            // Нет нигде - идём в сеть (но НЕ сохраняем!)
-            return fetch(event.request)
+            // Нет нигде - идём в сеть
+            return fetch(request)
+              .then((networkResponse) => {
+                if (networkResponse && networkResponse.status === 200) {
+                  const responseToCache = networkResponse.clone();
+                  caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(request, responseToCache);
+                  });
+                }
+                return networkResponse;
+              })
               .catch(() => {
-                // Сеть недоступна - пробуем любой кэш
-                return caches.keys().then(keys => {
-                  for (let key of keys) {
-                    if (key.startsWith('pso-v')) {
-                      return caches.match(event.request, { cacheName: key });
-                    }
-                  }
-                });
+                // Сеть недоступна - показываем главную
+                return caches.match('./index.html');
               });
           });
-      })
-  );
-});
+      });
+  }
+
+  // Для статических ресурсов - сначала подтверждённый кэш, потом pso-v-next
+  return caches.match(request, { cacheName: getConfirmedCacheName() })
+    .then((cachedResponse) => {
+      if (cachedResponse) {
+        console.log('Отдали из подтверждённого кэша:', request.url);
+        return cachedResponse;
+      }
+      
+      // Нет в подтверждённом - пробуем pso-v-next
+      return caches.match(request, { cacheName: CACHE_NAME })
+        .then((nextResponse) => {
+          if (nextResponse) {
+            console.log('Отдали из pso-v-next:', request.url);
+            return nextResponse;
+          }
+          
+          // Нет нигде - идём в сеть (без сохранения!)
+          return fetch(request)
+            .catch(() => {
+              // Сеть недоступна - пробуем любой кэш
+              return caches.keys().then(keys => {
+                for (let key of keys) {
+                  if (key.startsWith('pso-v')) {
+                    return caches.match(request, { cacheName: key });
+                  }
+                }
+              });
+            });
+        });
+    });
+}
