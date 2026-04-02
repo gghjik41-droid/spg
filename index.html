@@ -64,7 +64,7 @@
 
 <script>
     // --- КОНСТАНТЫ ---
-    var APP_VERSION = 52;  // Версия приложения - менять только здесь!
+    var APP_VERSION = 53;  // Версия приложения - менять только здесь!
 
     // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
     var ORDER = ['npcr', 'molitva', 'pamyatki', 'opros', '222222'];
@@ -473,17 +473,24 @@
         var versionEl = document.getElementById('version-indicator');
         if (!versionEl) return;
         
-        var confirmedVersion = localStorage.getItem('confirmed_version') || APP_VERSION;
+        var confirmedVersion = parseInt(localStorage.getItem('confirmed_version') || APP_VERSION);
+        var isOldVersion = confirmedVersion < APP_VERSION;
         
         if (navigator.onLine) {
-            // Онлайн - зелёный
             versionEl.textContent = 'v' + confirmedVersion;
             versionEl.style.display = 'block';
-            versionEl.style.background = '#4caf50';
-            versionEl.style.color = 'white';
-            versionEl.title = 'Онлайн - актуальная версия';
+            if (isOldVersion) {
+                // Старая версия - оранжевый
+                versionEl.style.background = '#ff9800';
+                versionEl.style.color = 'white';
+                versionEl.title = 'Онлайн - устаревшая версия ' + confirmedVersion + ', доступна ' + APP_VERSION;
+            } else {
+                // Актуальная - зелёный
+                versionEl.style.background = '#4caf50';
+                versionEl.style.color = 'white';
+                versionEl.title = 'Онлайн - актуальная версия';
+            }
         } else {
-            // Офлайн - красный
             versionEl.textContent = 'v' + confirmedVersion;
             versionEl.style.display = 'block';
             versionEl.style.background = '#f44336';
@@ -559,26 +566,31 @@
             navigator.serviceWorker.register('sw.js').then(function(reg) {
                 console.log('ServiceWorker готов!', reg.scope);
                 
-                // Передаём подтверждённую версию в SW (ждём пока станет active)
-                var sendConfirmedVersion = function() {
-                    var confirmedVersion = localStorage.getItem('confirmed_version') || APP_VERSION;
-                    reg.active.postMessage({
-                        type: 'set_confirmed_version',
-                        version: parseInt(confirmedVersion)
-                    });
-                    console.log('Отправлена подтверждённая версия в SW:', confirmedVersion);
-                };
-                
-                if (reg.active) {
-                    sendConfirmedVersion();
-                } else {
-                    reg.addEventListener('updatefound', function() {
-                        var newWorker = reg.installing;
-                        newWorker.addEventListener('statechange', function() {
-                            if (newWorker.state === 'activated') {
-                                sendConfirmedVersion();
-                            }
+                // Передаём подтверждённую версию в SW
+                function sendConfirmedVersion() {
+                    var confirmedVer = localStorage.getItem('confirmed_version') || APP_VERSION;
+                    var worker = reg.active || reg.installing;
+                    if (worker) {
+                        worker.postMessage({
+                            type: 'set_confirmed_version',
+                            version: parseInt(confirmedVer)
                         });
+                        console.log('Отправлена подтверждённая версия в SW:', confirmedVer);
+                    }
+                }
+                
+                // Пробуем сразу
+                sendConfirmedVersion();
+                
+                // И через небольшую задержку
+                setTimeout(sendConfirmedVersion, 1000);
+                
+                // И при активации
+                if (reg.installing) {
+                    reg.installing.addEventListener('statechange', function(e) {
+                        if (e.target.state === 'activated') {
+                            setTimeout(sendConfirmedVersion, 500);
+                        }
                     });
                 }
             }).catch(function(err) {
@@ -657,6 +669,14 @@
                 return caches.delete('pso-v-next');
             }).then(function() {
                 console.log('Подтверждена версия:', APP_VERSION);
+                
+                // Сообщаем SW о новой версии
+                if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'set_confirmed_version',
+                        version: APP_VERSION
+                    });
+                }
                 
                 // Перезагружаем страницу
                 location.reload();
