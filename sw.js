@@ -1,5 +1,5 @@
 // Меняй это число при каждом обновлении
-const CACHE_VERSION = 56;
+const CACHE_VERSION = 57;
 const CACHE_NAME = 'pso-v-next';  // Всегда один "новый" кэш
 
 // Список файлов для оффлайн-режима
@@ -81,8 +81,38 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Подтверждённая версия (по умолчанию - 0, найдём при первом запросе)
-let confirmedVersion = 0;
+// Подтверждённая версия (по умолчанию ждём от клиента)
+let confirmedVersion = null;
+let versionPromise = null;
+
+// Получить версию от клиента
+function getConfirmedVersionFromClient() {
+  if (versionPromise) return versionPromise;
+  
+  versionPromise = new Promise((resolve) => {
+    // Слушаем сообщение от клиента
+    const handler = (event) => {
+      if (event.data && event.data.type === 'set_confirmed_version') {
+        confirmedVersion = event.data.version;
+        console.log('[SW] Получена версия от клиента:', confirmedVersion);
+        self.removeEventListener('message', handler);
+        resolve(confirmedVersion);
+      }
+    };
+    self.addEventListener('message', handler);
+    
+    // Таймаут - если клиент не ответил за 3 секунды, используем CACHE_VERSION
+    setTimeout(() => {
+      if (confirmedVersion === null) {
+        confirmedVersion = CACHE_VERSION;
+        console.log('[SW] Таймаут, используем CACHE_VERSION:', confirmedVersion);
+        resolve(confirmedVersion);
+      }
+    }, 3000);
+  });
+  
+  return versionPromise;
+}
 
 // Проверка, нужно ли динамически кэшировать URL
 function shouldCacheDynamically(url) {
@@ -137,74 +167,19 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Инициализируем версию при первом запросе
-  if (confirmedVersion === 0) {
+  // Ждём версию от клиента перед обработкой fetch
+  if (confirmedVersion === null) {
     event.respondWith(
-      (async () => {
-        // Ищем подтверждённый кэш
-        const foundVersion = await findConfirmedCache();
-        
-        // Проверяем есть ли pso-v-next (новая версия)
-        const nextCacheExists = await caches.has(CACHE_NAME);
-        
-        if (foundVersion > 0) {
-          // Есть подтверждённый кэш - используем его
-          confirmedVersion = foundVersion;
-          console.log('[SW] Найден подтверждённый кэш, confirmedVersion:', confirmedVersion);
-        } else if (nextCacheExists) {
-          // Нет подтверждённого, но есть новая версия - пока не подтверждена!
-          // Ищем самую старую версию в кэшах как подтверждённую
-          const anyCacheVersion = await findAnyOldCache();
-          if (anyCacheVersion > 0) {
-            confirmedVersion = anyCacheVersion;
-            console.log('[SW] Есть новая версия, использую старую:', confirmedVersion);
-          } else {
-            // Нет вообще ничего - новый пользователь
-            confirmedVersion = CACHE_VERSION;
-            console.log('[SW] Новый пользователь, confirmedVersion = CACHE_VERSION:', confirmedVersion);
-          }
-        } else {
-          // Нет никакого кэша - новый пользователь
-          confirmedVersion = CACHE_VERSION;
-          console.log('[SW] Новый пользователь, confirmedVersion = CACHE_VERSION:', confirmedVersion);
-        }
-        
-        // Если есть новая версия (pso-v-next) но мы используем старую - шлём уведомление
-        if (nextCacheExists && foundVersion > 0 && CACHE_VERSION > foundVersion) {
-          // Есть новая версия! Уведомляем клиента
-          self.clients.matchAll().then(clients => {
-            clients.forEach(client => {
-              client.postMessage({ type: 'sw_updated', version: CACHE_VERSION });
-            });
-          });
-        }
-        
+      getConfirmedVersionFromClient().then((version) => {
+        console.log('[SW] Версия получена, обрабатываем fetch');
         return handleFetch(event);
-      })()
+      })
     );
     return;
   }
 
   return handleFetch(event);
 });
-
-// Найти любой старый кэш (кроме next)
-async function findAnyOldCache() {
-  const keys = await caches.keys();
-  let oldestVersion = 0;
-  
-  for (const key of keys) {
-    if (key === 'pso-v-next') continue;
-    const match = key.match(/^pso-v(\d+)$/);
-    if (match) {
-      const v = parseInt(match[1]);
-      if (v < oldestVersion || oldestVersion === 0) {
-        oldestVersion = v;
-      }
-    }
-  }
-  return oldestVersion;
-}
 
 async function handleFetch(event) {
   const url = new URL(event.request.url);

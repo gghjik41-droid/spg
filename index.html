@@ -64,7 +64,7 @@
 
 <script>
     // --- КОНСТАНТЫ ---
-    var APP_VERSION = 56;  // Версия приложения - менять только здесь!
+    var APP_VERSION = 57;  // Версия приложения - менять только здесь!
 
     // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
     var ORDER = ['npcr', 'molitva', 'pamyatki', 'opros', '222222'];
@@ -562,43 +562,44 @@
     }, false);
 
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-            navigator.serviceWorker.register('sw.js').then(function(reg) {
-                console.log('ServiceWorker готов!', reg.scope);
-                
-                // Передаём подтверждённую версию в SW
-                function sendConfirmedVersion() {
-                    var confirmedVer = localStorage.getItem('confirmed_version') || APP_VERSION;
-                    var worker = reg.active || reg.installing;
-                    if (worker) {
-                        worker.postMessage({
-                            type: 'set_confirmed_version',
-                            version: parseInt(confirmedVer)
-                        });
-                        console.log('Отправлена подтверждённая версия в SW:', confirmedVer);
-                    }
-                }
-                
-                // Пробуем сразу
-                sendConfirmedVersion();
-                
-                // И через небольшую задержку
-                setTimeout(sendConfirmedVersion, 1000);
-                
-                // И при активации
-                if (reg.installing) {
-                    reg.installing.addEventListener('statechange', function(e) {
-                        if (e.target.state === 'activated') {
-                            setTimeout(sendConfirmedVersion, 500);
-                        }
+        // Регистрируем сразу
+        navigator.serviceWorker.register('sw.js').then(function(reg) {
+            console.log('ServiceWorker готов!', reg.scope);
+            
+            // Передаём подтверждённую версию в SW
+            function sendConfirmedVersion() {
+                var confirmedVer = localStorage.getItem('confirmed_version') || APP_VERSION;
+                var worker = reg.active || reg.installing;
+                if (worker) {
+                    worker.postMessage({
+                        type: 'set_confirmed_version',
+                        version: parseInt(confirmedVer)
                     });
+                    console.log('Отправлена подтверждённая версия в SW:', confirmedVer);
                 }
-            }).catch(function(err) {
-                console.log('Ошибка SW:', err);
-            });
+            }
+                
+            // Пробуем сразу
+            sendConfirmedVersion();
+            
+            // И через небольшую задержку
+            setTimeout(sendConfirmedVersion, 500);
+            setTimeout(sendConfirmedVersion, 1000);
+            setTimeout(sendConfirmedVersion, 2000);
+            
+            // И при активации
+            if (reg.installing) {
+                reg.installing.addEventListener('statechange', function(e) {
+                    if (e.target.state === 'activated') {
+                        setTimeout(sendConfirmedVersion, 500);
+                    }
+                });
+            }
+        }).catch(function(err) {
+            console.log('Ошибка SW:', err);
         });
     }
-
+    
     // Проверить версию
     function checkServerVersion() {
         var confirmedVersion = localStorage.getItem('confirmed_version');
