@@ -64,7 +64,7 @@
 
 <script>
     // --- КОНСТАНТЫ ---
-    var APP_VERSION = 48;  // Версия приложения - менять только здесь!
+    var APP_VERSION = 50;  // Версия приложения - менять только здесь!
 
     // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
     var ORDER = ['npcr', 'molitva', 'pamyatki', 'opros', '222222'];
@@ -324,6 +324,15 @@
             if (resultSide) resultSide.style.display = 'block';
             if (btnCopy) btnCopy.style.display = 'flex';
         }
+
+        // SW сообщает о доступном обновлении
+        if (event.data.type === 'sw_updated') {
+            console.log('SW: Получено уведомление об обновлении, версия SW:', event.data.version);
+            var confirmedVersion = parseInt(localStorage.getItem('confirmed_version') || APP_VERSION);
+            if (event.data.version > confirmedVersion) {
+                showUpdateBanner();
+            }
+        }
     });
 
     /**
@@ -549,44 +558,32 @@
         window.addEventListener('load', function() {
             navigator.serviceWorker.register('sw.js').then(function(reg) {
                 console.log('ServiceWorker готов!', reg.scope);
+                
+                // Передаём подтверждённую версию в SW
+                var confirmedVersion = localStorage.getItem('confirmed_version') || APP_VERSION;
+                if (reg.active) {
+                    reg.active.postMessage({
+                        type: 'set_confirmed_version',
+                        version: parseInt(confirmedVersion)
+                    });
+                }
             }).catch(function(err) {
                 console.log('Ошибка SW:', err);
             });
         });
     }
 
-    // Проверить версию на сервере
+    // Проверить версию - теперь через SW (sw_updated), эта функция для совместимости
     function checkServerVersion() {
-        // Сначала подтверждаем текущую версию, если ещё не подтверждена
+        // Подтверждаем текущую версию, если ещё не подтверждена
         var confirmedVersion = localStorage.getItem('confirmed_version');
         if (!confirmedVersion) {
             localStorage.setItem('confirmed_version', APP_VERSION);
             confirmedVersion = APP_VERSION;
         }
-        
-        // Пробуем получить версию с сервера (напрямую, без кэша)
-        fetch('version.json', { cache: 'reload' })
-            .then(function(response) {
-                if (!response.ok) return null;
-                return response.text();
-            })
-            .then(function(serverVersion) {
-                if (!serverVersion) return;
-                
-                var serverVer = parseInt(serverVersion.trim());
-                var currentVer = parseInt(confirmedVersion);
-                
-                console.log('Версия на сервере:', serverVer, 'Подтверждённая:', currentVer);
-                
-                if (serverVer > currentVer) {
-                    showUpdateBanner();
-                }
-            })
-            .catch(function(err) {
-                console.log('Не удалось проверить версию (офлайн или ошибка):', err);
-            });
+        console.log('Версия подтверждена:', confirmedVersion);
     }
-
+        
     // Показать баннер обновления
     function showUpdateBanner() {
         console.log('showUpdateBanner вызвана');
@@ -622,27 +619,37 @@
         // Убираем отметку об отклонении
         localStorage.removeItem('update_dismissed');
         
-        // Обновляем кэш вручную
-        updateCache().then(function() {
-        // Получаем версию с сервера и подтверждаем её
-        fetch('version.json', { cache: 'reload' })
-                .then(function(response) { return response.text(); })
-                .then(function(serverVersion) {
-                    var ver = parseInt(serverVersion.trim()) || APP_VERSION;
-                    localStorage.setItem('confirmed_version', ver);
-                    console.log('Подтверждена версия:', ver);
-                    
-                    // Перезагружаем страницу
-                    location.reload();
-                })
-                .catch(function() {
-                    localStorage.setItem('confirmed_version', APP_VERSION);
-                    location.reload();
+        // Подтверждаем текущую версию
+        localStorage.setItem('confirmed_version', APP_VERSION);
+        
+        // "Новый" кэш (pso-v-next) становится подтверждённым
+        var confirmedCacheName = 'pso-v' + APP_VERSION;
+        
+        caches.open('pso-v-next').then(function(nextCache) {
+            // Создаём именной кэш и копируем туда всё из pso-v-next
+            return caches.open(confirmedCacheName).then(function(confirmedCache) {
+                return nextCache.keys().then(function(requests) {
+                    return Promise.all(requests.map(function(request) {
+                        return nextCache.match(request).then(function(response) {
+                            if (response) {
+                                return confirmedCache.put(request, response);
+                            }
+                        });
+                    }));
                 });
+            }).then(function() {
+                // Удаляем pso-v-next
+                return caches.delete('pso-v-next');
+            }).then(function() {
+                console.log('Подтверждена версия:', APP_VERSION);
+                
+                // Перезагружаем страницу
+                location.reload();
+            });
         });
     }
     
-    // Обновить кэш вручную
+    // Обновить "новый" кэш (pso-v-next)
     function updateCache() {
         var filesToCache = [
             './',
@@ -655,14 +662,13 @@
             './index.css',
             './panzoom.min.js',
             './222222.html',
-            './version.json',
             './manifest.json',
             './sw.js',
             './favicon.png'
         ];
         
-        // Имя кэша
-        var cacheName = 'pso-v' + APP_VERSION;
+        // Всегда обновляем pso-v-next (перезаписываем старый)
+        var cacheName = 'pso-v-next';
         
         return caches.open(cacheName).then(function(cache) {
             console.log('Обновляю кэш...');
