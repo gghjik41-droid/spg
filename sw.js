@@ -1,5 +1,5 @@
 // Меняй это число при каждом обновлении
-const CACHE_VERSION = 54;
+const CACHE_VERSION = 55;
 const CACHE_NAME = 'pso-v-next';  // Всегда один "новый" кэш
 
 // Список файлов для оффлайн-режима
@@ -143,14 +143,42 @@ self.addEventListener('fetch', (event) => {
       (async () => {
         // Ищем подтверждённый кэш
         const foundVersion = await findConfirmedCache();
+        
+        // Проверяем есть ли pso-v-next (новая версия)
+        const nextCacheExists = await caches.has(CACHE_NAME);
+        
         if (foundVersion > 0) {
+          // Есть подтверждённый кэш - используем его
           confirmedVersion = foundVersion;
           console.log('[SW] Найден подтверждённый кэш, confirmedVersion:', confirmedVersion);
+        } else if (nextCacheExists) {
+          // Нет подтверждённого, но есть новая версия - пока не подтверждена!
+          // Ищем самую старую версию в кэшах как подтверждённую
+          const anyCacheVersion = await findAnyOldCache();
+          if (anyCacheVersion > 0) {
+            confirmedVersion = anyCacheVersion;
+            console.log('[SW] Есть новая версия, использую старую:', confirmedVersion);
+          } else {
+            // Нет вообще ничего - новый пользователь
+            confirmedVersion = CACHE_VERSION;
+            console.log('[SW] Новый пользователь, confirmedVersion = CACHE_VERSION:', confirmedVersion);
+          }
         } else {
-          // Нет подтверждённого кэша - новый пользователь
+          // Нет никакого кэша - новый пользователь
           confirmedVersion = CACHE_VERSION;
           console.log('[SW] Новый пользователь, confirmedVersion = CACHE_VERSION:', confirmedVersion);
         }
+        
+        // Если есть новая версия (pso-v-next) но мы используем старую - шлём уведомление
+        if (nextCacheExists && foundVersion > 0 && CACHE_VERSION > foundVersion) {
+          // Есть новая версия! Уведомляем клиента
+          self.clients.matchAll().then(clients => {
+            clients.forEach(client => {
+              client.postMessage({ type: 'sw_updated', version: CACHE_VERSION });
+            });
+          });
+        }
+        
         return handleFetch(event);
       })()
     );
@@ -160,13 +188,35 @@ self.addEventListener('fetch', (event) => {
   return handleFetch(event);
 });
 
+// Найти любой старый кэш (кроме next)
+async function findAnyOldCache() {
+  const keys = await caches.keys();
+  let oldestVersion = 0;
+  
+  for (const key of keys) {
+    if (key === 'pso-v-next') continue;
+    const match = key.match(/^pso-v(\d+)$/);
+    if (match) {
+      const v = parseInt(match[1]);
+      if (v < oldestVersion || oldestVersion === 0) {
+        oldestVersion = v;
+      }
+    }
+  }
+  return oldestVersion;
+}
+
 async function handleFetch(event) {
   const url = new URL(event.request.url);
   const request = event.request;
   
-  debugLog('Fetch', { url: request.url, confirmedVersion: confirmedVersion, cacheVersion: CACHE_VERSION });
+  // Проверяем - если подтверждённая версия старше текущей, используем ТОЛЬКО её
+  // Не даём новой версии отобраться без согласия!
+  const usingOldVersion = confirmedVersion < CACHE_VERSION;
+  
+  debugLog('Fetch', { url: request.url, confirmedVersion: confirmedVersion, cacheVersion: CACHE_VERSION, usingOldVersion: usingOldVersion });
 
-  // Для навигационных запросов - ТОЛЬКО подтверждённый кэш
+  // Для навигационных запросов - ТОЛЬКО подтверждённый кэш (не даём новой версии без согласия!)
   if (request.mode === 'navigate') {
     return caches.match(request, { cacheName: getConfirmedCacheName() })
       .then((cachedResponse) => {
@@ -174,8 +224,15 @@ async function handleFetch(event) {
           console.log('Отдали из подтверждённого кэша (навигация):', request.url);
           return cachedResponse;
         }
-        // Нет подтверждённого кэша - новый пользователь, идём в сеть
-        console.log('Нет подтверждённого кэша, идём в сеть');
+        
+        // Если используем старую версию - НЕ идём в сеть за новой!
+        if (usingOldVersion) {
+          console.log('Пользователь на старой версии, не обновляем принудительно');
+          return new Response('Обновление доступно. Обновите страницу.', { status: 503 });
+        }
+        
+        // Новый пользователь - идём в сеть
+        console.log('Новый пользователь, идём в сеть');
         return fetch(request)
           .then((networkResponse) => {
             if (networkResponse && networkResponse.status === 200) {
@@ -187,7 +244,6 @@ async function handleFetch(event) {
             return networkResponse;
           })
           .catch(() => {
-            // Офлайн - показываем главную
             return caches.match('./index.html');
           });
       });
@@ -201,12 +257,17 @@ async function handleFetch(event) {
         return cachedResponse;
       }
       
-      // Нет в подтверждённом - идём в сеть
-      console.log('Нет подтверждённого кэша для:', request.url);
+      // Нет в подтверждённом - если используем старую версию, не обновляем
+      if (usingOldVersion) {
+        console.log('Старая версия - не обновляем статику');
+        return;
+      }
+      
+      // Новый пользователь - идём в сеть
+      console.log('Новый пользователь, идём в сеть за статикой');
       return fetch(request)
         .catch(() => {
-          // Офлайн - ничего не делаем, браузер сам покажет офлайн страницу
-          console.log('Офлайн, нет кэша для:', request.url);
+          console.log('Офлайн, нет кэша');
         });
     });
 }
