@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -250,21 +250,7 @@
         });
     }
 
-    var scrollThrottleTimer = null;
-    document.addEventListener('mousemove', function(e) {
-        var targetField = e.target.closest('.q-field[data-index]');
-        if (targetField) {
-            var idx = targetField.getAttribute('data-index');
-            if (idx !== null && idx !== lastSentIndex) {
-                // Throttle: не отправляем чаще чем раз в 100мс
-                if (scrollThrottleTimer) clearTimeout(scrollThrottleTimer);
-                scrollThrottleTimer = setTimeout(function() {
-                    lastSentIndex = idx;
-                    window.parent.postMessage({ type: 'sync_scroll', source: SOURCE_ID, index: idx }, '*');
-                }, 100);
-            }
-        }
-    });
+
 
     window.onload = function() {
         loadLocal(); 

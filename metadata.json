@@ -1,0 +1,6 @@
+{
+  "name": "Старшим поисковых групп",
+  "description": "PWA-приложение для поисково-спасательных операций. Опросники и памятки для старших поисковых групп.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

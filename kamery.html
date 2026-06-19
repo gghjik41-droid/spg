@@ -1,0 +1,2734 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>КАМЕРЫ</title>
+    <link rel="stylesheet" href="common.css">
+    
+    <!-- Leaflet CSS & JS via CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        body {
+            padding: 8px;
+            box-sizing: border-box;
+            background: #fafafa;
+        }
+
+        /* Интеграция карты */
+        #map {
+            width: 100%;
+            height: 320px;
+            border-radius: 8px;
+            border: 1px solid #4caf50;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            z-index: 10;
+        }
+
+        .map-coords-indicator {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1.5px solid #2e7d32;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #333;
+            pointer-events: none;
+        }
+
+        /* Кнопки управления картой */
+        .map-buttons {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .map-btn {
+            flex: 1;
+            min-width: 140px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #4caf50;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .map-btn:hover, .map-btn:active {
+            background: #c8e6c9;
+        }
+
+        .map-btn-primary {
+            background: #2e7d32;
+            color: white;
+            border: 1px solid #2e7d32;
+        }
+
+        .map-btn-primary:hover, .map-btn-primary:active {
+            background: #1b5e20;
+        }
+
+        /* Панель формы (Сворачиваемая) */
+        #form-panel {
+            display: none;
+            background: white;
+            border: 1.5px solid #4caf50;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            animation: slideDown 0.25s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-title {
+            font-weight: bold;
+            font-size: 15px;
+            color: #2e7d32;
+            text-transform: uppercase;
+            margin-top: 0;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #c8e6c9;
+            padding-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-close-btn {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .form-row .field-group {
+            flex: 1;
+            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        /* Выбор владельца кнопками */
+        .owner-type-group {
+            display: flex;
+            border: 1px solid #cfd8dc;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .owner-type-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: #fafafa;
+            color: #555;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .owner-type-btn:not(:last-child) {
+            border-right: 1px solid #cfd8dc;
+        }
+
+        .owner-type-btn.active[data-type="particular"] {
+            background: #1e88e5;
+            color: white;
+        }
+
+        .owner-type-btn.active[data-type="commercial"] {
+            background: #fb8c00;
+            color: white;
+        }
+
+        .owner-type-btn.active[data-type="municipal"] {
+            background: #43a047;
+            color: white;
+        }
+
+        /* Направление взгляда (Визуальная крутилка) */
+        .direction-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .direction-slider-wrapper {
+            flex: 1;
+        }
+
+        .direction-preview {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #2e7d32;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+
+        .direction-arrow {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 16px solid #e53935;
+            position: absolute;
+            top: 6px;
+            transform-origin: 50% 100%;
+            transition: transform 0.15s ease-out;
+        }
+
+        .direction-preview-text {
+            font-size: 10px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 14px;
+            z-index: 2;
+        }
+
+        /* Фото блок */
+        .photo-upload-container {
+            border: 1.5px dashed #4caf50;
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+            background: #f1f8e9;
+            cursor: pointer;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .photo-upload-container input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .photo-upload-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #2e7d32;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        #img-preview-container {
+            display: none;
+            margin-bottom: 12px;
+            position: relative;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #ccc;
+            max-height: 180px;
+        }
+
+        #img-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-delete-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .photo-delete-btn:hover {
+            background: rgba(229, 57, 53, 0.9);
+        }
+
+        /* Список добавленных камер */
+        .section-cameras-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #2e7d32;
+            padding-bottom: 4px;
+        }
+
+        .section-cameras-title {
+            font-weight: bold;
+            font-size: 15px;
+            color: #211e1e;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        /* Поиск и фильтры */
+        .controls-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .controls-row input {
+            flex: 1;
+            padding: 6px 10px;
+            font-size: 14px;
+        }
+
+        .controls-row select {
+            width: 120px;
+            background: white;
+            border: 1px solid #cfd8dc;
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        /* Список карточек камер */
+        .cameras-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        @media (min-width: 600px) {
+            .cameras-list {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .camera-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .camera-card:hover {
+            border-color: #4caf50;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+        }
+
+        .camera-card-top {
+            display: flex;
+            gap: 10px;
+        }
+
+        .camera-card-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .camera-card-address {
+            font-weight: bold;
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Галерея медиа: Фото + Интерактивная Карта-Вьювер */
+        .camera-card-media {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        .camera-card-media-item {
+            flex: 1;
+            position: relative;
+            height: 90px;
+            background: #fdfdfd;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-card-media-label {
+            position: absolute;
+            top: 2px;
+            left: 4px;
+            font-size: 8px;
+            color: rgba(0,0,0,0.6);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-weight: bold;
+            text-transform: uppercase;
+            z-index: 10;
+            pointer-events: none;
+            border: 0.5px solid rgba(0,0,0,0.15);
+            letter-spacing: 0.5px;
+        }
+
+        .camera-card-media-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        /* Автоматический снимок карты */
+        .map-snapshot-box {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            background: #e5e3df;
+            cursor: pointer;
+        }
+
+        .map-snapshot-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+        }
+
+        .map-snapshot-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .mini-camera-sector {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 38px solid rgba(76, 175, 80, 0.45);
+            top: -38px;
+            left: -14px;
+            transform-origin: 50% 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .mini-camera-sector.particular { border-top-color: rgba(30, 136, 229, 0.55); }
+        .mini-camera-sector.commercial { border-top-color: rgba(251, 140, 0, 0.55); }
+        .mini-camera-sector.municipal { border-top-color: rgba(67, 160, 71, 0.55); }
+
+        .mini-camera-marker {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #2e7d32;
+            color: #2e7d32;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: bold;
+            font-family: monospace;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            top: -9px;
+            left: -9px;
+            z-index: 5;
+        }
+        .mini-camera-marker.particular { border-color: #1e88e5; color: #1e88e5; }
+        .mini-camera-marker.commercial { border-color: #fb8c00; color: #fb8c00; }
+        .mini-camera-marker.municipal { border-color: #43a047; color: #43a047; }
+
+        .camera-card-meta {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .camera-badge {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+
+        .badge-particular { background: #e3f2fd; color: #1e88e5; }
+        .badge-commercial { background: #fff3e0; color: #fb8c00; }
+        .badge-municipal { background: #e8f5e9; color: #43a047; }
+
+        .camera-card-contacts {
+            font-size: 11px;
+            color: #333;
+            background: #f5f5f5;
+            padding: 4px 6px;
+            border-radius: 4px;
+            word-break: break-all;
+            margin-top: 4px;
+        }
+
+        .camera-card-desc {
+            font-size: 11px;
+            font-style: italic;
+            color: #555;
+            border-left: 2px solid #ccc;
+            padding-left: 6px;
+            margin: 2px 0;
+        }
+
+        .camera-card-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: auto;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 6px;
+        }
+
+        .card-btn {
+            flex: 1;
+            padding: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            border: 1px solid #ccc;
+            background: #fafafa;
+            color: #333;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .card-btn:hover {
+            background: #f1f1f1;
+            border-color: #999;
+        }
+
+        .card-btn-map {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-color: #c8e6c9;
+        }
+
+        .card-btn-map:hover {
+            background: #c8e6c9;
+        }
+
+        .card-btn-delete:hover {
+            background: #ffebee;
+            color: #c62828;
+            border-color: #ef9a9a;
+        }
+
+        /* Fullscreen Photo Modal */
+        .zoom-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-modal-img {
+            max-width: 95%;
+            max-height: 85%;
+            border-radius: 6px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            object-fit: contain;
+        }
+
+        .zoom-modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            color: white;
+            font-size: 30px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .no-data-placeholder {
+            padding: 30px 10px;
+            text-align: center;
+            background: white;
+            border: 1px dashed #cfd8dc;
+            border-radius: 8px;
+            color: #777;
+            font-size: 13px;
+        }
+
+        /* Custom DivIcon for Cameras on Map */
+        .custom-camera-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .camera-icon-marker {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2.5px solid #2e7d32;
+            color: #2e7d32;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            z-index: 5;
+        }
+
+        .camera-icon-marker.particular { border-color: #1e88e5; color: #1e88e5; }
+        .camera-icon-marker.commercial { border-color: #fb8c00; color: #fb8c00; }
+        .camera-icon-marker.municipal { border-color: #43a047; color: #43a047; }
+
+        .camera-sector {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 22px solid transparent;
+            border-right: 22px solid transparent;
+            border-top: 60px solid rgba(76, 175, 80, 0.45); /* Конус расширяется от центра на Север при 0° */
+            top: -47px; /* 13px (центр маркера 26px) - 60px height = -47px */
+            left: -9px;  /* 13px (центр) - 22px half-width = -9px */
+            transform-origin: 50% 100%; /* Вращение вокруг вершины треугольника (низ по центру) */
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .camera-sector.particular { border-top-color: rgba(30, 136, 229, 0.45); }
+        .camera-sector.commercial { border-top-color: rgba(251, 140, 0, 0.45); }
+        .camera-sector.municipal { border-top-color: rgba(67, 160, 71, 0.45); }
+
+        /* Проектная (активная) точка камеры */
+        .draft-camera-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .draft-camera-icon-marker {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px dashed #ff5722; /* Яркий штриховой оранжевый бордер */
+            color: #ff5722;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            box-shadow: 0 0 10px rgba(255, 87, 34, 0.6);
+            z-index: 10;
+            animation: pulseDraft 1.5s infinite;
+        }
+
+        @keyframes pulseDraft {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); box-shadow: 0 0 14px rgba(255, 87, 34, 0.9); }
+            100% { transform: scale(1); }
+        }
+
+        .draft-camera-sector {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 26px solid transparent;
+            border-right: 26px solid transparent;
+            border-top: 70px solid rgba(255, 87, 34, 0.5); /* Яркий оранжевый конус */
+            top: -56px; /* 14px (центр маркера 28px) - 70px height = -56px */
+            left: -12px; /* 14px (центр) - 26px half-width = -12px */
+            transform-origin: 50% 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Ручка выбора направления прямо на карте */
+        .direction-handle-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #ff5722;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: grab;
+            font-size: 11px;
+            line-height: 1;
+            font-weight: bold;
+            color: #ff5722;
+            user-select: none;
+            z-index: 100;
+        }
+        .direction-handle-icon:active {
+            cursor: grabbing;
+            background: #ff5722;
+            color: #fff;
+        }
+        .custom-direction-handle-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px !important;
+            height: 32px !important;
+            background: transparent;
+        }
+
+        /* Иконка Штаба */
+        .hq-icon-marker {
+            width: 32px;
+            height: 32px;
+            background: white;
+            border: 3px solid #ffb300;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            animation: pulseHQ 2s infinite;
+        }
+
+        @keyframes pulseHQ {
+            0% { box-shadow: 0 0 0 0 rgba(255, 179, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 179, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 179, 0, 0); }
+        }
+
+        /* Кнопки JSON импорта/экспорта */
+        .backup-btn-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 15px;
+        }
+        .backup-btn-row .map-btn {
+            flex: 1;
+            padding: 6px 10px;
+            font-size: 11px;
+            min-width: auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ================= PECHAT / PDF EXPORT STYLES ================= */
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            body.printing-active > :not(#print-view-wrapper) {
+                display: none !important;
+            }
+            #print-view-wrapper {
+                display: block !important;
+                position: static !important;
+                background: transparent !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+                z-index: auto !important;
+            }
+            #print-view-controls, .print-tip-banner {
+                display: none !important;
+            }
+            #print-view-inner {
+                background: transparent !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+                border: none !important;
+            }
+            #print-view-scrollable {
+                padding: 0 !important;
+                overflow: visible !important;
+                background: transparent !important;
+                display: block !important;
+                height: auto !important;
+            }
+            #print-view {
+                display: block !important;
+                padding: 4px !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+            @page {
+                size: portrait;
+                margin: 2mm;
+            }
+        }
+
+        body.printing-active > :not(#print-view-wrapper) {
+            display: none !important;
+        }
+
+        #print-view-wrapper {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 15000;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        #print-view-inner {
+            background: #f0f2f5;
+            width: 100%;
+            max-width: 410px;
+            height: 90vh;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            border: 1px solid #ddd;
+        }
+
+        #print-view-controls {
+            background: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .pdf-btn {
+            background: #2e7d32;
+            color: #ffffff;
+            border: none;
+            padding: 8px 12px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            text-transform: uppercase;
+            transition: background 0.2s;
+        }
+
+        .pdf-btn:hover {
+            background: #1b5e20;
+        }
+
+        .pdf-btn.neutral {
+            background: #1976d2;
+            color: #ffffff;
+        }
+
+        .pdf-btn.neutral:hover {
+            background: #115293;
+        }
+
+        .pdf-btn.danger {
+            background: #e53935;
+            color: #ffffff;
+        }
+
+        .pdf-btn.danger:hover {
+            background: #c62828;
+        }
+
+        #print-view-scrollable {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f0f2f5;
+        }
+
+        #print-view {
+            background: #ffffff;
+            color: #000000;
+            padding: 12px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            width: 100%;
+            max-width: 380px;
+            box-sizing: border-box;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .print-header {
+            border-bottom: 2px dashed #2e7d32;
+            padding-bottom: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .print-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2e7d32;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .print-meta {
+            font-size: 9px;
+            color: #555;
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        .print-camera-item {
+            border-bottom: 1px dashed #cccccc;
+            padding-bottom: 0px;
+            margin-bottom: 0px;
+            background: #ffffff;
+            page-break-inside: avoid;
+            page-break-before: always;
+        }
+
+        .print-camera-item:last-child {
+            border-bottom: none;
+        }
+
+        .print-camera-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #111;
+            margin-bottom: 2px;
+            padding-bottom: 1px;
+            border-bottom: 1.5px solid #2e7d32;
+        }
+
+        .print-camera-details {
+            font-size: 9px;
+            line-height: 1.25;
+            margin-bottom: 4px;
+            color: #2c2c2c;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px 8px;
+            background: #fafafa;
+            padding: 4px;
+            border-radius: 4px;
+            border: 1px solid #eee;
+        }
+
+        .print-detail-line {
+            margin-bottom: 1px;
+            word-break: break-all;
+        }
+
+        .print-detail-line b {
+            color: #444;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .print-media-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 4px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .print-media-box {
+            width: 245px;
+            height: 245px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            background: #fafafa;
+            flex-shrink: 0;
+        }
+
+        .print-media-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .print-media-label {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            font-size: 7px;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1px 2px;
+            border-radius: 1px;
+            color: #333;
+            border: 0.5px solid #ddd;
+            z-index: 10;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+        }
+
+        .print-link-btn {
+            display: block;
+            margin-top: 2px;
+            color: #1e88e5;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 9px;
+            text-align: center;
+            background: #f1f8e9;
+            border: 1px solid #c8e6c9;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+    </style>
+</head>
+<body>
+
+    
+
+    <!-- КАРТА -->
+    <div id="map"></div>
+
+    <!-- УПРАВЛЕНИЕ КАРТОЙ -->
+    <div class="map-buttons">
+        <button class="map-btn map-btn-primary" onclick="showFormForNewCamera()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Добавить камеру
+        </button>
+        <button class="map-btn" onclick="useHQCoords()">
+            📌 Штаб
+        </button>
+        <button class="map-btn" onclick="getCurrentLocation()">
+            📡 Моё GPS
+        </button>
+    </div>
+
+    <!-- ФОРМА ДОБАВЛЕНИЯ/РЕДАКТИРОВАНИЯ -->
+    <div id="form-panel">
+        <div class="form-title">
+            <span id="form-panel-title">Регистрация камеры</span>
+            <button class="form-close-btn" onclick="hideForm()">✕</button>
+        </div>
+
+        <input type="hidden" id="form-id">
+
+        <!-- Строка Координат -->
+        <div class="form-row">
+            <div class="field-group">
+                <label>Широта (Lat)</label>
+                <input type="number" step="any" id="form-lat" required placeholder="55.7558" oninput="updateDraftMarker()">
+            </div>
+            <div class="field-group">
+                <label>Долгота (Lon)</label>
+                <input type="number" step="any" id="form-lon" required placeholder="37.6173" oninput="updateDraftMarker()">
+            </div>
+        </div>
+
+        <!-- Адрес и ориентир -->
+        <div class="field-group">
+            <label>Адрес установки (из геокодера или вручную)</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="form-address" placeholder="Определяю адрес автоматически..." style="flex: 1; margin-bottom: 0;">
+                <button type="button" class="map-btn" style="min-width: auto; padding: 0 12px; margin-bottom: 0; background: #e8f5e9; border: 1px solid #4caf50; font-size: 11px; height: 38px; display: flex; align-items: center;" onclick="lookupAddressByCoords()" title="Обновить адрес по координатам">📡 Поиск адреса</button>
+            </div>
+            <div id="address-loader" style="font-size: 11px; color: #4e342e; display: none; margin-top: 4px; align-items: center; gap: 6px;">
+                <span style="display: inline-block; width: 12px; height: 12px; border: 2px solid #ccc; border-top-color: #2e7d32; border-radius: 50%; animation: spin 1s linear infinite;"></span>
+                <span>Запрос адреса к OpenStreetMap...</span>
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label>Ориентир (заполняет поисковик)</label>
+            <input type="text" id="form-landmark" placeholder="Например: у входа в Аптеку, на углу дома, столб №15">
+        </div>
+
+        <!-- Направление взгляда (Визуальный выбор) -->
+        <label>Направление обзора (Азимут взгляда)</label>
+        <div class="direction-container">
+            <div class="direction-slider-wrapper">
+                <input type="range" min="0" max="359" id="form-direction" value="0" oninput="onDirectionSliderChange(this.value)">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: #666; margin-top: 4px;">
+                    <span>С (0°)</span>
+                    <span>В (90°)</span>
+                    <span>Ю (180°)</span>
+                    <span>З (270°)</span>
+                </div>
+            </div>
+            <div class="direction-preview" id="form-direction-preview" onclick="cycleDirectionQuick()">
+                <div class="direction-arrow" id="form-direction-arrow"></div>
+                <div class="direction-preview-text" id="form-direction-text">0°</div>
+            </div>
+        </div>
+
+        <!-- Выбор типа владельца -->
+        <label>Тип размещения / Владелец</label>
+        <div class="owner-type-group">
+            <button class="owner-type-btn active" data-type="particular" onclick="setOwnerType('particular')">Частное лицо</button>
+            <button class="owner-type-btn" data-type="commercial" onclick="setOwnerType('commercial')">Бизнес / Магазин</button>
+            <button class="owner-type-btn" data-type="municipal" onclick="setOwnerType('municipal')">Муниципальная</button>
+        </div>
+
+        <!-- Контакты владельца -->
+        <div class="form-row">
+            <div class="field-group">
+                <label>Имя / Название коорд.</label>
+                <input type="text" id="form-owner-name" placeholder="Охрана Крендель / ИП Иванов">
+            </div>
+            <div class="field-group">
+                <label>Контакты, Телефон</label>
+                <input type="text" id="form-owner-contact" placeholder="+7 999 123-45-67">
+            </div>
+        </div>
+
+        <!-- Сделать/прикрепить фото местности -->
+        <div id="img-preview-container">
+            <button class="photo-delete-btn" onclick="removePhoto()" title="Удалить фото">✕</button>
+            <img id="img-preview" src="">
+        </div>
+        <div class="photo-upload-container">
+            <div class="photo-upload-label">
+                <span>📸 Сделать фото местности/ракурса</span>
+                <span style="font-size: 11px; font-weight: normal; color: #555;">(кликните и выберите камеру телефона)</span>
+            </div>
+            <input type="file" accept="image/*" capture="environment" id="form-photo-file" onchange="handlePhotoUpload(this)">
+        </div>
+
+        <!-- Описание, подробности, хронометраж архива -->
+        <div class="field-group">
+            <label>Дополнительное примечание (архив в сутках и т.д.)</label>
+            <textarea id="form-description" rows="2" placeholder="Архив пишется 10 дней. Лица видны хорошо. Доступ круглосуточный через сторожку."></textarea>
+        </div>
+
+        <!-- Кнопки Сохранения/Сброса -->
+        <div class="form-row" style="margin-top: 15px;">
+            <button class="map-btn" style="background: #fafafa; border-color: #ccc; color: #333;" onclick="hideForm()">Отмена</button>
+            <button class="map-btn map-btn-primary" onclick="saveCamera()">Сохранить камеру</button>
+        </div>
+    </div>
+
+    <!-- СПИСОК КАМЕР -->
+    <div class="section-cameras-header">
+        <h3 class="section-cameras-title" id="section-title-total">Камеры на поиске (0)</h3>
+        <button class="map-btn" style="background: #eafbe7; border-color: #2e7d32; color: #2e7d32; display: flex; align-items: center; gap: 4px; padding: 4px 10px; margin: 0; font-size: 11px; font-weight: bold; text-transform: uppercase;" onclick="exportToPdf()">
+            📄 Поделиться PDF
+        </button>
+    </div>
+
+    <!-- Строка фильтров -->
+    <div class="controls-row">
+        <input type="text" id="filter-search" oninput="renderAll()" placeholder="Поиск по ориентиру, владельцу...">
+        <select id="filter-type" onchange="renderAll()">
+            <option value="all">Все типы</option>
+            <option value="particular">Частные</option>
+            <option value="commercial">Коммерческие</option>
+            <option value="municipal">Городские</option>
+        </select>
+    </div>
+
+    <div id="cameras-container" class="cameras-list">
+        <!-- Сюда рендерятся карточки -->
+    </div>
+
+    <!-- КНОПКИ РЕЗЕРВНОГО КОПИРОВАНИЯ -->
+    <div class="backup-btn-row">
+        <button class="map-btn" onclick="exportData()">💾 Локальный бэкап анкеты (JSON)</button>
+        <button class="map-btn" onclick="document.getElementById('import-file-cam').click()">📂 Импорт файлов (JSON)</button>
+        <input type="file" id="import-file-cam" style="display:none" onchange="importData(this)" accept=".json">
+    </div>
+
+    <!-- Модальное окно просмотра оригинального фото -->
+    <div class="zoom-modal" id="zoom-modal" onclick="closeZomModal()">
+        <button class="zoom-modal-close" onclick="closeZomModal()">✕</button>
+        <img class="zoom-modal-img" id="zoom-modal-img" src="">
+    </div>
+
+    <script>
+        // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ХРАНИЛИЩА ---
+        var map;
+        var hqMarker = null;
+        var mapMarkersList = [];
+        var activeCameraId = null;
+        var currentPhotoData = "";
+        var selectedOwnerType = "particular";
+
+        // Ключ для LocalStorage
+        var CAM_STORAGE_KEY = "pso_cameras_v1";
+
+        // Инициализация при открытии
+        window.onload = function() {
+            initMap();
+            loadCameras();
+            renderAll();
+            
+            // Если в Штабе уже введены координаты — подтягиваем и показываем штаб на карте
+            setTimeout(function() {
+                updateHQUiOnMap();
+                sendUpdateToParent();
+            }, 300);
+        };
+
+        // Инициализация карты Leaflet
+        function initMap() {
+            var startCoords = getHQCoords();
+            
+            map = L.map('map', {
+                center: [startCoords.lat, startCoords.lon],
+                zoom: 15,
+                zoomControl: true,
+                attributionControl: false
+            });
+
+            // Подключение бесплатных плиток OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19
+            }).addTo(map);
+
+            // Обработка клика по карте для легкого добавления новой камеры
+            map.on('click', function(e) {
+                showFormForNewCamera(e.latlng.lat, e.latlng.lng);
+            });
+            
+            // Добавим индикатор координат в углу карты
+            var coordsControl = L.control({ position: 'bottomleft' });
+            coordsControl.onAdd = function() {
+                var div = L.DomUtil.create('div', 'map-coords-indicator');
+                div.id = 'map-coords-indicator-box';
+                div.innerHTML = startCoords.lat.toFixed(5) + ", " + startCoords.lon.toFixed(5);
+                return div;
+            };
+            coordsControl.addTo(map);
+
+            map.on('mousemove', function(e) {
+                var el = document.getElementById('map-coords-indicator-box');
+                if (el) {
+                    el.innerHTML = e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
+                }
+            });
+
+            map.on('zoomend', function() {
+                updateDraftMarker();
+            });
+        }
+
+        // GPS текущего местоположения пользователя
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var lat = position.coords.latitude;
+                    var lon = position.coords.longitude;
+                    map.setView([lat, lon], 17);
+                    showFormForNewCamera(lat, lon);
+                }, function(err) {
+                    alert("Не удалось определить GPS: " + err.message);
+                }, { enableHighAccuracy: true, timeout: 5000 });
+            } else {
+                alert("Ваше устройство не поддерживает геолокацию");
+            }
+        }
+
+        // Загрузка координат штаба из файла NPCR
+        function getHQCoords() {
+            try {
+                var raw = localStorage.getItem('survey_cache_npcr_v2');
+                if (raw) {
+                    var data = JSON.parse(raw);
+                    if (data && data.staff && data.staff.lat && data.staff.lon) {
+                        var lat = parseFloat(data.staff.lat);
+                        var lon = parseFloat(data.staff.lon);
+                        if (!isNaN(lat) && !isNaN(lon)) {
+                            return { lat: lat, lon: lon };
+                        }
+                    }
+                }
+            } catch(e) {}
+            return { lat: 55.75582, lon: 37.6173 }; // fallback moscow
+        }
+
+        function useHQCoords() {
+            var coords = getHQCoords();
+            map.setView([coords.lat, coords.lon], 16);
+            updateHQUiOnMap();
+        }
+
+        // Отрисовка маркера штаба на карте
+        function updateHQUiOnMap() {
+            var coords = getHQCoords();
+            if (hqMarker) {
+                map.removeLayer(hqMarker);
+                hqMarker = null;
+            }
+
+            // Добавляем только если координата не дефолтная
+            var raw = localStorage.getItem('survey_cache_npcr_v2');
+            if (raw) {
+                var hqIcon = L.divIcon({
+                    className: 'custom-hq-icon',
+                    html: '<div class="hq-icon-marker" title="Штаб поиска">🎪</div>',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
+                });
+                
+                hqMarker = L.marker([coords.lat, coords.lon], { icon: hqIcon }).addTo(map);
+                hqMarker.bindPopup("<b>🏠 ШТАБ ПОИСКА ПСО</b><br>Центральная координата операции.");
+            }
+        }
+
+        // Чтение списка камер из LocalStorage
+        function getCameras() {
+            try {
+                var raw = localStorage.getItem(CAM_STORAGE_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch(e) {
+                return [];
+            }
+        }
+
+        function loadCameras() {
+            // Маркеры загружаются в renderAll()
+        }
+
+        // Сохранение списка камер в LocalStorage
+        function setCameras(cameras) {
+            localStorage.setItem(CAM_STORAGE_KEY, JSON.stringify(cameras));
+            sendUpdateToParent();
+        }
+
+        var draftMarker = null;
+        var draftDirectionHandle = null;
+        var isDraggingHandle = false;
+
+        // Показ и обновление проектной (временной) точки на карте
+        function updateDraftMarker() {
+            var latVal = parseFloat(document.getElementById('form-lat').value);
+            var lonVal = parseFloat(document.getElementById('form-lon').value);
+            var directionVal = parseInt(document.getElementById('form-direction').value) || 0;
+
+            var formPanel = document.getElementById('form-panel');
+            if (!formPanel || formPanel.style.display === 'none' || isNaN(latVal) || isNaN(lonVal)) {
+                if (draftMarker) {
+                    map.removeLayer(draftMarker);
+                    draftMarker = null;
+                }
+                if (draftDirectionHandle) {
+                    map.removeLayer(draftDirectionHandle);
+                    draftDirectionHandle = null;
+                }
+                return;
+            }
+
+            var draftIcon = L.divIcon({
+                className: 'custom-draft-wrapper',
+                html: `
+                    <div class="draft-camera-icon">
+                        <div class="draft-camera-sector" style="transform: rotate(${directionVal}deg);"></div>
+                        <div class="draft-camera-icon-marker" title="Проектная точка камеры">🎯</div>
+                    </div>
+                `,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            });
+
+            if (draftMarker) {
+                draftMarker.setLatLng([latVal, lonVal]);
+                draftMarker.setIcon(draftIcon);
+            } else {
+                draftMarker = L.marker([latVal, lonVal], { icon: draftIcon, zIndexOffset: 1000 }).addTo(map);
+            }
+
+            // Создаем/обновляем маркер-ручку для интерактивного вращения на карте
+            var zoom = map.getZoom();
+            var offset = 0.00065 * Math.pow(2, 15 - zoom);
+            var angleRad = directionVal * Math.PI / 180;
+            var handleLat = latVal + offset * Math.cos(angleRad);
+            var handleLon = lonVal + offset * Math.sin(angleRad);
+
+            var handleIcon = L.divIcon({
+                className: 'custom-direction-handle-wrapper',
+                html: `<div class="direction-handle-icon" title="Зажмите и тяните для вращения направления">🔄</div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            });
+
+            if (draftDirectionHandle) {
+                if (!isDraggingHandle) {
+                    draftDirectionHandle.setLatLng([handleLat, handleLon]);
+                }
+            } else {
+                draftDirectionHandle = L.marker([handleLat, handleLon], {
+                    icon: handleIcon,
+                    draggable: true,
+                    zIndexOffset: 1100
+                }).addTo(map);
+
+                draftDirectionHandle.on('dragstart', function() {
+                    isDraggingHandle = true;
+                });
+
+                draftDirectionHandle.on('drag', function(e) {
+                    var currentLat = parseFloat(document.getElementById('form-lat').value);
+                    var currentLon = parseFloat(document.getElementById('form-lon').value);
+                    if (isNaN(currentLat) || isNaN(currentLon)) return;
+
+                    var angleRad = Math.atan2(e.latlng.lng - currentLon, e.latlng.lat - currentLat);
+                    var newAngle = Math.round((angleRad * 180 / Math.PI) % 360);
+                    if (newAngle < 0) {
+                        newAngle += 360;
+                    }
+
+                    var slider = document.getElementById('form-direction');
+                    if (slider) {
+                        slider.value = newAngle;
+                    }
+                    onDirectionSliderChange(newAngle);
+                });
+
+                draftDirectionHandle.on('dragend', function() {
+                    isDraggingHandle = false;
+                    updateDraftMarker();
+                });
+            }
+        }
+
+        // Автоматическое определение адреса по координатам с несколькими резервными сервисами и обходом CORS-ограничений (через прокси)
+        var lastGeocodeTimeout = null;
+        async function lookupAddressByCoords(lat, lon) {
+            var latVal = lat || parseFloat(document.getElementById('form-lat').value);
+            var lonVal = lon || parseFloat(document.getElementById('form-lon').value);
+            
+            if (isNaN(latVal) || isNaN(lonVal)) {
+                return;
+            }
+
+            var loader = document.getElementById('address-loader');
+            var statusSpan = null;
+            if (loader) {
+                loader.style.display = 'flex';
+                loader.innerHTML = `
+                    <span style="display: inline-block; width: 12px; height: 12px; border: 2px solid #ccc; border-top-color: #2e7d32; border-radius: 50%; animation: spin 1s linear infinite;"></span>
+                    <span id="address-status-text">Определяю адрес...</span>
+                `;
+                statusSpan = document.getElementById('address-status-text');
+            }
+
+            var addressInput = document.getElementById('form-address');
+            if (addressInput) {
+                addressInput.placeholder = "Определяю адрес автоматически...";
+            }
+
+            // Функция обновления статуса для пользователя
+            function setStatusText(txt) {
+                if (statusSpan) {
+                    statusSpan.innerText = txt;
+                }
+                console.log("[Geocoder Status]: " + txt);
+            }
+
+            // Функция fetch с таймаутом, чтобы предотвратить бесконечные зависания
+            async function fetchWithTimeout(url, options, timeoutMs) {
+                timeoutMs = timeoutMs || 2500; // таймаут 2.5 секунды
+                var controller = new AbortController();
+                var timeoutId = setTimeout(function() {
+                    controller.abort();
+                }, timeoutMs);
+                
+                try {
+                    var fetchOptions = Object.assign({}, options || {}, { signal: controller.signal });
+                    var response = await fetch(url, fetchOptions);
+                    clearTimeout(timeoutId);
+                    return response;
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    throw err;
+                }
+            }
+
+            var addressSuccess = false;
+
+            // Список попыток (название, функция получения)
+            var attempts = [
+                {
+                    name: "Photon (прямой запрос)",
+                    fn: async () => {
+                        var url = 'https://photon.komoot.io/reverse?lat=' + latVal + '&lon=' + lonVal + '&lang=ru';
+                        var res = await fetchWithTimeout(url);
+                        if (!res.ok) throw new Error("Status " + res.status);
+                        var data = await res.json();
+                        if (data && data.features && data.features.length > 0) {
+                            var props = data.features[0].properties;
+                            var city = props.city || props.town || props.village || props.locality || "";
+                            var street = props.street || "";
+                            var house = props.housenumber || "";
+                            
+                            var parts = [];
+                            if (city) {
+                                city = city.replace(/городской округ/i, '').replace(/муниципальный округ/i, '').trim();
+                                parts.push(city);
+                            }
+                            if (street) parts.push(street);
+                            if (house) parts.push(house);
+                            if (parts.length <= 1 && props.name && props.name !== city) {
+                                parts.push(props.name);
+                            }
+                            return parts.join(', ');
+                        }
+                        return null;
+                    }
+                },
+                {
+                    name: "BigDataCloud (прямой запрос)",
+                    fn: async () => {
+                        var url = 'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + latVal + '&longitude=' + lonVal + '&localityLanguage=ru';
+                        var res = await fetchWithTimeout(url);
+                        if (!res.ok) throw new Error("Status " + res.status);
+                        var data = await res.json();
+                        if (data) {
+                            var parts = [];
+                            var region = data.principalSubdivision || "";
+                            var city = data.city || "";
+                            var locality = data.locality || "";
+                            
+                            if (city) {
+                                parts.push(city);
+                            } else if (region) {
+                                parts.push(region);
+                            }
+                            
+                            if (locality && locality !== city) {
+                                parts.push(locality);
+                            }
+                            
+                            if (data.localityInfo && data.localityInfo.informative) {
+                                var streetObj = data.localityInfo.informative.find(function(item) {
+                                    return item.name && (
+                                        item.name.toLowerCase().includes('улица') ||
+                                        item.name.toLowerCase().includes('ул.') ||
+                                        item.name.toLowerCase().includes('переулок') ||
+                                        item.name.toLowerCase().includes('пер.') ||
+                                        item.name.toLowerCase().includes('проспект') ||
+                                        item.name.toLowerCase().includes('пр-кт') ||
+                                        item.name.toLowerCase().includes('площадь') ||
+                                        item.name.toLowerCase().includes('ш.') ||
+                                        item.name.toLowerCase().includes('шоссе') ||
+                                        item.name.toLowerCase().includes('тракт') ||
+                                        item.name.toLowerCase().includes('бульвар') ||
+                                        item.name.toLowerCase().includes('б-р')
+                                    );
+                                });
+                                if (streetObj && streetObj.name) {
+                                    parts.push(streetObj.name);
+                                }
+                            }
+                            return parts.join(', ');
+                        }
+                        return null;
+                    }
+                },
+                {
+                    name: "Photon (через CorsProxy.io)",
+                    fn: async () => {
+                        var target = 'https://photon.komoot.io/reverse?lat=' + latVal + '&lon=' + lonVal + '&lang=ru';
+                        var url = 'https://corsproxy.io/?' + encodeURIComponent(target);
+                        var res = await fetchWithTimeout(url);
+                        if (!res.ok) throw new Error("Status " + res.status);
+                        var data = await res.json();
+                        if (data && data.features && data.features.length > 0) {
+                            var props = data.features[0].properties;
+                            var city = props.city || props.town || props.village || props.locality || "";
+                            var street = props.street || "";
+                            var house = props.housenumber || "";
+                            
+                            var parts = [];
+                            if (city) {
+                                city = city.replace(/городской округ/i, '').replace(/муниципальный округ/i, '').trim();
+                                parts.push(city);
+                            }
+                            if (street) parts.push(street);
+                            if (house) parts.push(house);
+                            if (parts.length <= 1 && props.name && props.name !== city) {
+                                parts.push(props.name);
+                            }
+                            return parts.join(', ');
+                        }
+                        return null;
+                    }
+                },
+                {
+                    name: "Photon (через AllOrigins)",
+                    fn: async () => {
+                        var target = 'https://photon.komoot.io/reverse?lat=' + latVal + '&lon=' + lonVal + '&lang=ru';
+                        var url = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(target);
+                        var res = await fetchWithTimeout(url);
+                        if (!res.ok) throw new Error("Status " + res.status);
+                        var data = await res.json();
+                        if (data && data.features && data.features.length > 0) {
+                            var props = data.features[0].properties;
+                            var city = props.city || props.town || props.village || props.locality || "";
+                            var street = props.street || "";
+                            var house = props.housenumber || "";
+                            
+                            var parts = [];
+                            if (city) {
+                                city = city.replace(/городской округ/i, '').replace(/муниципальный округ/i, '').trim();
+                                parts.push(city);
+                            }
+                            if (street) parts.push(street);
+                            if (house) parts.push(house);
+                            if (parts.length <= 1 && props.name && props.name !== city) {
+                                parts.push(props.name);
+                            }
+                            return parts.join(', ');
+                        }
+                        return null;
+                    }
+                },
+                {
+                    name: "OSM Nominatim (прямой запрос)",
+                    fn: async () => {
+                        var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + latVal + '&lon=' + lonVal + '&accept-language=ru&email=GGHJIK41@gmail.com';
+                        var res = await fetchWithTimeout(url, { referrerPolicy: "no-referrer" });
+                        if (!res.ok) throw new Error("Status " + res.status);
+                        var data = await res.json();
+                        if (data && data.address) {
+                            var addr = data.address;
+                            var city = addr.city || addr.town || addr.village || addr.hamlet || addr.suburb || "";
+                            var road = addr.road || addr.street || "";
+                            var house = addr.house_number || "";
+                            
+                            var parts = [];
+                            if (city) {
+                                city = city.replace(/городской округ/i, '').replace(/муниципальный округ/i, '').trim();
+                                parts.push(city);
+                            }
+                            if (road) parts.push(road);
+                            if (house) parts.push(house);
+                            var resultAddr = parts.join(', ');
+                            if (!resultAddr && data.display_name) {
+                                resultAddr = data.display_name.split(',').slice(0, 3).join(',').trim();
+                            }
+                            return resultAddr;
+                        }
+                        return null;
+                    }
+                },
+                {
+                    name: "OSM Nominatim (через CorsProxy.io)",
+                    fn: async () => {
+                        var target = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + latVal + '&lon=' + lonVal + '&accept-language=ru&email=GGHJIK41@gmail.com';
+                        var url = 'https://corsproxy.io/?' + encodeURIComponent(target);
+                        var res = await fetchWithTimeout(url);
+                        if (!res.ok) throw new Error("Status " + res.status);
+                        var data = await res.json();
+                        if (data && data.address) {
+                            var addr = data.address;
+                            var city = addr.city || addr.town || addr.village || addr.hamlet || addr.suburb || "";
+                            var road = addr.road || addr.street || "";
+                            var house = addr.house_number || "";
+                            
+                            var parts = [];
+                            if (city) {
+                                city = city.replace(/городской округ/i, '').replace(/муниципальный округ/i, '').trim();
+                                parts.push(city);
+                            }
+                            if (road) parts.push(road);
+                            if (house) parts.push(house);
+                            var resultAddr = parts.join(', ');
+                            if (!resultAddr && data.display_name) {
+                                resultAddr = data.display_name.split(',').slice(0, 3).join(',').trim();
+                            }
+                            return resultAddr;
+                        }
+                        return null;
+                    }
+                },
+                {
+                    name: "BigDataCloud (через AllOrigins)",
+                    fn: async () => {
+                        var target = 'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + latVal + '&longitude=' + lonVal + '&localityLanguage=ru';
+                        var url = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(target);
+                        var res = await fetchWithTimeout(url);
+                        if (!res.ok) throw new Error("Status " + res.status);
+                        var data = await res.json();
+                        if (data) {
+                            var parts = [];
+                            var region = data.principalSubdivision || "";
+                            var city = data.city || "";
+                            var locality = data.locality || "";
+                            
+                            if (city) {
+                                parts.push(city);
+                            } else if (region) {
+                                parts.push(region);
+                            }
+                            
+                            if (locality && locality !== city) {
+                                parts.push(locality);
+                            }
+                            
+                            if (data.localityInfo && data.localityInfo.informative) {
+                                var streetObj = data.localityInfo.informative.find(function(item) {
+                                    return item.name && (
+                                        item.name.toLowerCase().includes('улица') ||
+                                        item.name.toLowerCase().includes('ул.') ||
+                                        item.name.toLowerCase().includes('переулок') ||
+                                        item.name.toLowerCase().includes('пер.') ||
+                                        item.name.toLowerCase().includes('проспект') ||
+                                        item.name.toLowerCase().includes('пр-кт') ||
+                                        item.name.toLowerCase().includes('площадь') ||
+                                        item.name.toLowerCase().includes('ш.') ||
+                                        item.name.toLowerCase().includes('шоссе') ||
+                                        item.name.toLowerCase().includes('тракт') ||
+                                        item.name.toLowerCase().includes('бульвар') ||
+                                        item.name.toLowerCase().includes('б-р')
+                                    );
+                                });
+                                if (streetObj && streetObj.name) {
+                                    parts.push(streetObj.name);
+                                }
+                            }
+                            return parts.join(', ');
+                        }
+                        return null;
+                    }
+                },
+                {
+                    name: "BigDataCloud (через CorsProxy.io)",
+                    fn: async () => {
+                        var target = 'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + latVal + '&longitude=' + lonVal + '&localityLanguage=ru';
+                        var url = 'https://corsproxy.io/?' + encodeURIComponent(target);
+                        var res = await fetchWithTimeout(url);
+                        if (!res.ok) throw new Error("Status " + res.status);
+                        var data = await res.json();
+                        if (data) {
+                            var parts = [];
+                            var region = data.principalSubdivision || "";
+                            var city = data.city || "";
+                            var locality = data.locality || "";
+                            
+                            if (city) {
+                                parts.push(city);
+                            } else if (region) {
+                                parts.push(region);
+                            }
+                            
+                            if (locality && locality !== city) {
+                                parts.push(locality);
+                            }
+                            
+                            if (data.localityInfo && data.localityInfo.informative) {
+                                var streetObj = data.localityInfo.informative.find(function(item) {
+                                    return item.name && (
+                                        item.name.toLowerCase().includes('улица') ||
+                                        item.name.toLowerCase().includes('ул.') ||
+                                        item.name.toLowerCase().includes('переулок') ||
+                                        item.name.toLowerCase().includes('пер.') ||
+                                        item.name.toLowerCase().includes('проспект') ||
+                                        item.name.toLowerCase().includes('пр-кт') ||
+                                        item.name.toLowerCase().includes('площадь') ||
+                                        item.name.toLowerCase().includes('ш.') ||
+                                        item.name.toLowerCase().includes('шоссе') ||
+                                        item.name.toLowerCase().includes('тракт') ||
+                                        item.name.toLowerCase().includes('бульвар') ||
+                                        item.name.toLowerCase().includes('б-р')
+                                    );
+                                });
+                                if (streetObj && streetObj.name) {
+                                    parts.push(streetObj.name);
+                                }
+                            }
+                            return parts.join(', ');
+                        }
+                        return null;
+                    }
+                }
+            ];
+
+            for (var i = 0; i < attempts.length; i++) {
+                var att = attempts[i];
+                setStatusText("Пробую " + att.name + "...");
+                try {
+                    var addr = await att.fn();
+                    if (addr && addr.trim().length > 0) {
+                        if (addressInput) {
+                            addressInput.value = addr.trim();
+                        }
+                        addressSuccess = true;
+                        setStatusText("Адрес найден через " + att.name);
+                        break;
+                    }
+                } catch (e) {
+                    console.warn(att.name + " ошибка: ", e);
+                }
+            }
+
+            if (addressSuccess) {
+                // Прячем лоудер с задержкой, чтобы пользователь увидел успех
+                setTimeout(function() {
+                    if (loader) loader.style.display = 'none';
+                }, 1500);
+            } else {
+                setStatusText("Ошибка. Введите адрес вручную.");
+                if (addressInput && !addressInput.value) {
+                    addressInput.placeholder = "Координаты определены. Введите адрес вручную.";
+                }
+                setTimeout(function() {
+                    if (loader) loader.style.display = 'none';
+                }, 4000);
+            }
+        }
+
+        // Показать форму добавления камеры
+        function showFormForNewCamera(lat, lon) {
+            hideForm(); // сбросить старое состояние
+            
+            document.getElementById('form-panel').style.display = 'block';
+            document.getElementById('form-panel-title').innerText = "Регистрация новой камеры";
+            document.getElementById('form-id').value = "";
+            
+            // Если координаты переданы из клика по карте — берем их, иначе ставим центр карты
+            var finalLat = lat || map.getCenter().lat;
+            var finalLon = lon || map.getCenter().lng;
+            
+            document.getElementById('form-lat').value = finalLat.toFixed(6);
+            document.getElementById('form-lon').value = finalLon.toFixed(6);
+            document.getElementById('form-address').value = "";
+            if (document.getElementById('form-landmark')) {
+                document.getElementById('form-landmark').value = "";
+            }
+            document.getElementById('form-owner-name').value = "";
+            document.getElementById('form-owner-contact').value = "";
+            document.getElementById('form-description').value = "";
+            currentPhotoData = "";
+            
+            // Сброс визуальных элементов азимута
+            onDirectionSliderChange(0);
+            document.getElementById('form-direction').value = 0;
+            
+            setOwnerType('particular');
+            removePhoto();
+            
+            // Показываем проектную точку мгновенно!
+            updateDraftMarker();
+            renderAll(); // исключим редактируемый если был
+            
+            // Автоматически определяем адрес при создании новой камеры
+            lookupAddressByCoords(finalLat, finalLon);
+
+            // ...высоту iframe родителя
+            sendHeight();
+
+            // Скроллим к панели
+            document.getElementById('form-panel').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Скрыть форму
+        function hideForm() {
+            document.getElementById('form-panel').style.display = 'none';
+            updateDraftMarker(); // Удалит черновой маркер
+            renderAll(); // Перерисует обычные маркеры
+            sendHeight(); // Корректировка высоты родителю
+        }
+
+        // Изменение слайдера направления
+        function onDirectionSliderChange(value) {
+            document.getElementById('form-direction-text').innerText = value + "°";
+            var arrow = document.getElementById('form-direction-arrow');
+            if (arrow) {
+                arrow.style.transform = 'rotate(' + value + 'deg)';
+            }
+            // Динамический поворот сектора черновика
+            updateDraftMarker();
+        }
+
+        // Быстрый клик по колесу азимута циклически меняет на 45 градусов
+        function cycleDirectionQuick() {
+            var slider = document.getElementById('form-direction');
+            var val = (parseInt(slider.value) + 45) % 360;
+            slider.value = val;
+            onDirectionSliderChange(val);
+        }
+
+        // Установка типа владельца (кнопки)
+        function setOwnerType(type) {
+            selectedOwnerType = type;
+            document.querySelectorAll('.owner-type-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-type') === type) {
+                    btn.classList.add('active');
+                }
+            });
+            // Обновить черновик под измененный тип
+            updateDraftMarker();
+        }
+
+        // Загрузка фото, сжатие и конверт в base64
+        function handlePhotoUpload(input) {
+            if (input.files && input.files[0]) {
+                var file = input.files[0];
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var img = new Image();
+                    img.onload = function() {
+                        // Сжимаем до ~480px по большей стороне для оптимизации веса
+                        var maxW = 480;
+                        var maxH = 480;
+                        var w = img.width;
+                        var h = img.height;
+                        
+                        if (w > maxW || h > maxH) {
+                            if (w > h) {
+                                h = Math.round((h * maxW) / w);
+                                w = maxW;
+                            } else {
+                                w = Math.round((w * maxH) / h);
+                                h = maxH;
+                            }
+                        }
+                        
+                        var canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        var ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        
+                        // Качество 0.65 оптимально для разборчивости и веса до 12-18 Кб
+                        var compressedBase64 = canvas.toDataURL('image/jpeg', 0.65);
+                        
+                        document.getElementById('img-preview').src = compressedBase64;
+                        document.getElementById('img-preview-container').style.display = 'block';
+                        currentPhotoData = compressedBase64;
+                        
+                        // Пересчитаем высоту iframe после загрузки и отображения картинки
+                        sendHeight();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removePhoto() {
+            document.getElementById('img-preview-container').style.display = 'none';
+            document.getElementById('img-preview').src = "";
+            document.getElementById('form-photo-file').value = "";
+            currentPhotoData = "";
+            
+            // Пересчитаем высоту после удаления картинки
+            sendHeight();
+        }
+
+        // Сохранение камеры в локальную базу данных
+        function saveCamera() {
+            var lat = parseFloat(document.getElementById('form-lat').value);
+            var lon = parseFloat(document.getElementById('form-lon').value);
+            var address = document.getElementById('form-address').value.trim();
+            var landmark = document.getElementById('form-landmark') ? document.getElementById('form-landmark').value.trim() : "";
+            var direction = parseInt(document.getElementById('form-direction').value) || 0;
+            var ownerName = document.getElementById('form-owner-name').value.trim();
+            var ownerContact = document.getElementById('form-owner-contact').value.trim();
+            var description = document.getElementById('form-description').value.trim();
+
+            if (isNaN(lat) || isNaN(lon)) {
+                alert("Пожалуйста, заполните координаты!");
+                return;
+            }
+
+            if (!address) {
+                alert("Пожалуйста, укажите адрес установки камеры!");
+                return;
+            }
+
+            var cameras = getCameras();
+            var formId = document.getElementById('form-id').value;
+
+            var newCamera = {
+                id: formId ? formId : "cam_" + Date.now(),
+                lat: lat,
+                lon: lon,
+                address: address,
+                landmark: landmark,
+                direction: direction,
+                ownerType: selectedOwnerType,
+                ownerName: ownerName,
+                ownerContact: ownerContact,
+                photo: currentPhotoData,
+                description: description,
+                timestamp: Date.now()
+            };
+
+            if (formId) {
+                // Редактирование
+                var index = cameras.findIndex(c => c.id === formId);
+                if (index !== -1) {
+                    cameras[index] = newCamera;
+                }
+            } else {
+                // Добавление новой
+                cameras.push(newCamera);
+            }
+
+            setCameras(cameras);
+            hideForm();
+            renderAll();
+            
+            // Центрируем карту на сохраненной камере
+            map.setView([lat, lon], 16);
+        }
+
+        // Редактирование конкретной камеры
+        function editCamera(id) {
+            var cameras = getCameras();
+            var camera = cameras.find(c => c.id === id);
+            if (!camera) return;
+
+            document.getElementById('form-panel').style.display = 'block';
+            document.getElementById('form-panel-title').innerText = "Редактирование параметров камеры";
+            document.getElementById('form-id').value = camera.id;
+            
+            document.getElementById('form-lat').value = camera.lat;
+            document.getElementById('form-lon').value = camera.lon;
+            document.getElementById('form-address').value = camera.address || "";
+            if (document.getElementById('form-landmark')) {
+                document.getElementById('form-landmark').value = camera.landmark || "";
+            }
+            
+            document.getElementById('form-direction').value = camera.direction;
+            onDirectionSliderChange(camera.direction);
+            
+            setOwnerType(camera.ownerType);
+            
+            document.getElementById('form-owner-name').value = camera.ownerName || "";
+            document.getElementById('form-owner-contact').value = camera.ownerContact || "";
+            document.getElementById('form-description').value = camera.description || "";
+            
+            if (camera.photo) {
+                currentPhotoData = camera.photo;
+                document.getElementById('img-preview').src = camera.photo;
+                document.getElementById('img-preview-container').style.display = 'block';
+            } else {
+                removePhoto();
+            }
+
+            // Показываем редактируемую точку как проектный черновик
+            updateDraftMarker();
+            renderAll(); // Перерисует основные маркеры исключая текущий редактируемый
+
+            // Обновляем высоту iframe родителя
+            sendHeight();
+
+            document.getElementById('form-panel').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Удаление камеры
+        function deleteCamera(id) {
+            if (confirm("Вы действительно хотите удалить эту камеру из отчёта?")) {
+                var cameras = getCameras();
+                cameras = cameras.filter(c => c.id !== id);
+                setCameras(cameras);
+                renderAll();
+            }
+        }
+
+        // К камере на карте
+        function zoomToCamera(lat, lon) {
+            map.setView([lat, lon], 17);
+            
+            // Находим маркер на карте по координатам и открываем его балун
+            mapMarkersList.forEach(function(m) {
+                if (m.getLatLng().lat === lat && m.getLatLng().lng === lon) {
+                    m.openPopup();
+                }
+            });
+            
+            // Плавный скролл наверх к карте
+            document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Отрисовка всех маркеров и списка
+        function renderAll() {
+            var searchTxt = document.getElementById('filter-search').value.toLowerCase().trim();
+            var filterType = document.getElementById('filter-type').value;
+
+            var cameras = getCameras();
+
+            // Очистка старых маркеров на карте
+            mapMarkersList.forEach(function(m) {
+                map.removeLayer(m);
+            });
+            mapMarkersList = [];
+
+            // Фильтрация
+            var filteredCameras = cameras.filter(function(c) {
+                var matchesSearch = (c.address && c.address.toLowerCase().includes(searchTxt)) ||
+                                    (c.landmark && c.landmark.toLowerCase().includes(searchTxt)) ||
+                                    (c.ownerName && c.ownerName.toLowerCase().includes(searchTxt)) ||
+                                    (c.ownerContact && c.ownerContact.toLowerCase().includes(searchTxt)) ||
+                                    (c.description && c.description.toLowerCase().includes(searchTxt));
+                
+                var matchesType = (filterType === 'all') || (c.ownerType === filterType);
+
+                return matchesSearch && matchesType;
+            });
+
+            // Обновляем заголовок счетчика
+            document.getElementById('section-title-total').innerText = "Камеры на поиске (" + filteredCameras.length + ")";
+
+            var container = document.getElementById('cameras-container');
+            container.innerHTML = "";
+
+            if (filteredCameras.length === 0) {
+                container.innerHTML = '<div class="no-data-placeholder">Нет подходящих камер. Добавьте камеру кликом по карте выше.</div>';
+                return;
+            }
+
+            var editingId = document.getElementById('form-id') ? document.getElementById('form-id').value : "";
+
+            filteredCameras.forEach(function(c, idx) {
+                // 1. Добавление маркера на карту (если не редактируется прямо сейчас)
+                if (c.id !== editingId) {
+                    var fullTitle = c.address + (c.landmark ? ' — ' + c.landmark : '');
+                    var customIcon = L.divIcon({
+                        className: 'custom-camera-wrapper',
+                        html: `
+                            <div class="custom-camera-icon">
+                                <div class="camera-sector ${c.ownerType}" style="transform: rotate(${c.direction}deg);"></div>
+                                <div class="camera-icon-marker ${c.ownerType}" title="${fullTitle}">${idx+1}</div>
+                            </div>
+                        `,
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    });
+
+                    var marker = L.marker([c.lat, c.lon], { icon: customIcon }).addTo(map);
+                    
+                    var labelName = c.ownerType === 'particular' ? 'Частная' : 
+                                    c.ownerType === 'commercial' ? 'Организация' : 'Городская';
+                    
+                    var popupHtml = `
+                        <div style="font-family: 'Segoe UI', sans-serif; font-size:12px; max-width:200px;">
+                            <b style="color:#2e7d32;">🎥 Камера #${idx+1} [${labelName}]</b><br>
+                            <b>Адрес:</b> ${c.address}<br>
+                            ${c.landmark ? '<b>Ориентир:</b> ' + c.landmark + '<br>' : ''}
+                            <b>Азимут:</b> ${c.direction}°<br>
+                            ${c.ownerName ? '<b>Контакт:</b> ' + c.ownerName + ' ('+ (c.ownerContact || '') +')<br>' : ''}
+                            ${c.description ? '<i>' + c.description + '</i>' : ''}
+                        </div>
+                    `;
+                    marker.bindPopup(popupHtml);
+                    mapMarkersList.push(marker);
+                }
+
+                // 2. Создание карточки в списке
+                var card = document.createElement('div');
+                card.className = "camera-card";
+                
+                var ownerTypeName = c.ownerType === 'particular' ? 'Частное лицо' :
+                                    c.ownerType === 'commercial' ? 'Коммерческое' : 'Муниципальная';
+
+                var hasPhoto = c.photo ? true : false;
+                var photoSrc = c.photo ? c.photo : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%23bbb' stroke-width='1.5'><rect x='3' y='3' width='18' height='18' rx='2' ry='2'></rect><circle cx='8.5' cy='8.5' r='1.5'></circle><polyline points='21 15 16 10 5 21'></polyline></svg>";
+
+                card.innerHTML = `
+                    <div class="camera-card-top">
+                        <div class="camera-card-info">
+                            <div class="camera-card-address" title="${c.address}">${idx+1}. ${c.address}</div>
+                            ${c.landmark ? `<div class="camera-card-landmark" style="font-size: 11px; color: #555; margin: 2px 0 4px 0; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;" title="${c.landmark}">📍 Ориентир: ${c.landmark}</div>` : ''}
+                            <div class="camera-card-meta">
+                                <span class="camera-badge badge-${c.ownerType}">${ownerTypeName}</span>
+                                <span>🧭 ${c.direction}°</span>
+                            </div>
+                            <div class="camera-card-meta" style="font-family: monospace; font-size: 10px;">
+                                Lat: ${c.lat.toFixed(6)} | Lon: ${c.lon.toFixed(6)}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Галерея медиа: Фото и Автоматическая Миникарта -->
+                    <div class="camera-card-media">
+                        <div class="camera-card-media-item">
+                            <span class="camera-card-media-label">Фото местности</span>
+                            <img class="camera-card-media-img" src="${photoSrc}" onclick="zoomPhoto('${c.photo || ''}')" alt="Фото отсутствует">
+                        </div>
+                        <div class="camera-card-media-item" onclick="zoomToCamera(${c.lat}, ${c.lon})" title="Показать на карте сверху">
+                            <span class="camera-card-media-label">Снимок карты</span>
+                            <div class="map-snapshot-box">
+                                <img class="map-snapshot-img" src="https://static-maps.yandex.ru/1.x/?ll=${c.lon.toFixed(6)},${c.lat.toFixed(6)}&z=16&size=180,180&l=map" alt="Карта" loading="lazy" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23ccc\' stroke-width=\'1.5\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\' ry=\'2\'></rect><polyline points=\'9 17\'></polyline></svg>';">
+                                <div class="map-snapshot-overlay">
+                                    <div class="mini-camera-sector ${c.ownerType}" style="transform: rotate(${c.direction}deg);"></div>
+                                    <div class="mini-camera-marker ${c.ownerType}">${idx+1}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${c.ownerName || c.ownerContact ? `
+                    <div class="camera-card-contacts">
+                        <b>Хозяин:</b> ${c.ownerName || '—'}<br>
+                        <b>Связь:</b> ${c.ownerContact ? `<a href="tel:${c.ownerContact}" style="color:#1e88e5; font-weight:bold;">${c.ownerContact}</a>` : '—'}
+                    </div>
+                    ` : ''}
+                    ${c.description ? `<div class="camera-card-desc">${c.description}</div>` : ''}
+                    
+                    <div class="camera-card-actions">
+                        <button class="card-btn card-btn-map" onclick="zoomToCamera(${c.lat}, ${c.lon})">🧭 На карте</button>
+                        <button class="card-btn" onclick="editCamera('${c.id}')">✏️ Свойства</button>
+                        <button class="card-btn" onclick="shareIndividualCamera(${idx+1}, this)">🔗 Поделиться</button>
+                        <button class="card-btn card-btn-delete" onclick="deleteCamera('${c.id}')">✕</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Поделиться одной камерой в буфер / мессенджер
+        function shareIndividualCamera(indexFromOne, btnEl) {
+            var idx = indexFromOne - 1;
+            var cameras = getCameras();
+            var c = cameras[idx];
+            if (!c) return;
+
+            var ownerText = c.ownerType === 'particular' ? 'Частное лицо' :
+                            c.ownerType === 'commercial' ? 'Организация' : 'Городская';
+
+            var addrStr = c.address || "";
+            if (c.landmark) {
+                addrStr += (addrStr ? " — " : "") + c.landmark;
+            }
+            if (!addrStr) {
+                addrStr = "без адреса";
+            }
+
+            var text = `Камера #${indexFromOne}: 📍${addrStr}\n` +
+                       `${c.lat.toFixed(6)}, ${c.lon.toFixed(6)}, (https://yandex.ru/maps/?text=${c.lat},${c.lon})\n` +
+                       `🏢 Владелец: ${ownerText} (${c.ownerName || 'не указан'})\n` +
+                       `📞 Контакты: ${c.ownerContact || 'нет данных'}`;
+            if (c.description) {
+                text += `\n📝 Доп. информация: ${c.description}`;
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() {
+                    if (btnEl) {
+                        var originalHtml = btnEl.innerHTML;
+                        btnEl.innerHTML = "✅ Скопировано!";
+                        btnEl.style.backgroundColor = "#2e7d32";
+                        btnEl.style.color = "#ffffff";
+                        // Блокируем кнопку на время анимации
+                        btnEl.disabled = true;
+                        setTimeout(function() {
+                            btnEl.innerHTML = originalHtml;
+                            btnEl.style.backgroundColor = "";
+                            btnEl.style.color = "";
+                            btnEl.disabled = false;
+                        }, 1500);
+                    } else {
+                        alert("Описание камеры #" + indexFromOne + " скопировано!");
+                    }
+                }).catch(function() {
+                    alert("Ошибка при копировании. Вы можете скопировать из отчёта справа.");
+                });
+            } else {
+                alert("Ваш браузер заблокировал копирование.");
+            }
+        }
+
+        // Увеличение фотографии кликом
+        function zoomPhoto(base64Url) {
+            if (!base64Url) {
+                alert("Фотография местности не прикреплена для этой камеры!");
+                return;
+            }
+            var modal = document.getElementById('zoom-modal');
+            var modalImg = document.getElementById('zoom-modal-img');
+            modalImg.src = base64Url;
+            modal.style.display = "flex";
+        }
+
+        function closeZomModal() {
+            var modal = document.getElementById('zoom-modal');
+            modal.style.display = "none";
+        }
+
+        // Экспорт списка камер
+        function exportData() {
+            var cameras = getCameras();
+            if (cameras.length === 0) {
+                alert("Список камер пуст!");
+                return;
+            }
+            
+            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cameras));
+            var downloadAnchor = document.createElement('a');
+            
+            var now = new Date();
+            var dateStr = now.toISOString().slice(0,10);
+            
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "cameras-backup-" + dateStr + ".json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        // Глобальные методы управления PDF модалкой и генерацией
+        window.closePdfPreview = function() {
+            var wrapper = document.getElementById('print-view-wrapper');
+            if (wrapper) wrapper.style.display = 'none';
+            document.body.classList.remove('printing-active');
+        };
+
+        window.triggerSystemPrint = function() {
+            document.body.classList.add('printing-active');
+            window.print();
+            // Возвращаем в обычное состояние после небольшого таймаута
+            setTimeout(function() {
+                document.body.classList.remove('printing-active');
+            }, 1000);
+        };
+
+        window.triggerDownloadPdf = function() {
+            var downloadBtn = document.getElementById('pdf-download-btn');
+            var origText = "📥 Скачать PDF";
+            if (downloadBtn) {
+                origText = downloadBtn.innerHTML;
+                downloadBtn.innerHTML = "⏳ Создание...";
+                downloadBtn.disabled = true;
+            }
+            
+            var printView = document.getElementById('print-view');
+            var now = new Date();
+            var opt = {
+                margin:       1.5, // Поля 1.5 мм (буквально пара мм по вашей просьбе)
+                filename:     'cameras-mobile-report-' + now.toISOString().slice(0, 10) + '.pdf',
+                image:        { type: 'jpeg', quality: 0.95 },
+                html2canvas:  { 
+                    scale: 2, 
+                    logging: false,
+                    useCORS: true,
+                    allowTaint: true,
+                    width: 380,
+                    windowWidth: 380
+                },
+                jsPDF:        { unit: 'mm', format: [105, 170], orientation: 'portrait' }, // Узкий "мобильный" формат страницы
+                pagebreak:    { mode: 'legacy', before: '.print-camera-item' }
+            };
+
+            // Предотвращаем вечный зависон html2pdf
+            var pdfTimeout = setTimeout(function() {
+                if (downloadBtn) {
+                    downloadBtn.innerHTML = origText;
+                    downloadBtn.disabled = false;
+                }
+                alert("Скачивание PDF заняло больше времени, чем ожидалось. Рекомендуем использовать кнопку «Печать» -> «Сохранить как PDF» — это работает мгновенно и без сбоев!");
+            }, 8000);
+
+            try {
+                html2pdf().set(opt).from(printView).save().then(function() {
+                    clearTimeout(pdfTimeout);
+                    if (downloadBtn) {
+                        downloadBtn.innerHTML = "✅ Скачана!";
+                        setTimeout(function() {
+                            downloadBtn.innerHTML = origText;
+                            downloadBtn.disabled = false;
+                        }, 1500);
+                    }
+                }).catch(function(err) {
+                    clearTimeout(pdfTimeout);
+                    console.error("PDF generation error: ", err);
+                    if (downloadBtn) {
+                        downloadBtn.innerHTML = origText;
+                        downloadBtn.disabled = false;
+                    }
+                    alert("Не удалось автоматически сгенерировать PDF. Пожалуйста, используйте кнопку «Печать» -> «Сохранить как PDF».");
+                });
+            } catch (e) {
+                clearTimeout(pdfTimeout);
+                console.error("html2pdf library error: ", e);
+                if (downloadBtn) {
+                    downloadBtn.innerHTML = origText;
+                    downloadBtn.disabled = false;
+                }
+                alert("Ошибка библиотеки экспорта. Рекомендуем нажать «Печать» и выбрать «Сохранить как PDF» — там всё отработает безупречно.");
+            }
+        };
+
+        // Экспорт и подготовка PDF отчета
+        function exportToPdf() {
+            var cameras = getCameras();
+            if (cameras.length === 0) {
+                alert("Список камер пуст! Сначала добавьте камеры.");
+                return;
+            }
+
+            // Создаем красивый контейнер предпросмотра, если его нет
+            var wrapper = document.getElementById('print-view-wrapper');
+            if (!wrapper) {
+                wrapper = document.createElement('div');
+                wrapper.id = 'print-view-wrapper';
+                wrapper.innerHTML = `
+                    <div id="print-view-inner">
+                        <div id="print-view-controls">
+                            <button class="pdf-btn" onclick="triggerDownloadPdf()" id="pdf-download-btn">📥 Скачать PDF</button>
+                            <button class="pdf-btn neutral" onclick="triggerSystemPrint()">🖨️ Печать</button>
+                            <button class="pdf-btn danger" onclick="closePdfPreview()">❌ Закрыть</button>
+                        </div>
+                        <div class="print-tip-banner" style="background: #fffde7; color: #5d4037; font-size: 11px; padding: 8px 12px; border-bottom: 1px solid #ffe082; line-height: 1.4; font-family: sans-serif;">
+                            💡 <b>Совет:</b> Если скачанный PDF не содержит мини-карт (защита CORS у Яндекса), нажмите <b>«Печать»</b> и выберите <b>«Сохранить как PDF»</b>. Там карты работают 100%.
+                        </div>
+                        <div id="print-view-scrollable">
+                            <div id="print-view"></div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(wrapper);
+            }
+
+            var printView = document.getElementById('print-view');
+            var now = new Date();
+            var dateString = now.toLocaleDateString('ru-RU') + ' ' + now.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'});
+
+            var html = `
+                <div class="print-header">
+                    <div>
+                        <h1 class="print-title">🎥 Список камер</h1>
+                    </div>
+                    <div class="print-meta">
+                        Камер: ${cameras.length} | ${dateString}
+                    </div>
+                </div>
+            `;
+
+            // Добавляем общую обзорную карту расположения всех камер на одну схему
+            if (cameras.length > 0) {
+                // Создаем временный элемент карты для расчета координат в пикселях через Leaflet
+                var tempDiv = document.createElement('div');
+                tempDiv.style.width = '356px';
+                tempDiv.style.height = '356px';
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.left = '-9999px';
+                tempDiv.style.top = '-9999px';
+                document.body.appendChild(tempDiv);
+
+                var tempMap = L.map(tempDiv, {
+                    zoomControl: false,
+                    attributionControl: false
+                });
+
+                var bounds = L.latLngBounds(cameras.map(function(c) { return [c.lat, c.lon]; }));
+                tempMap.fitBounds(bounds, { padding: [10, 10] });
+
+                var finalCenter = tempMap.getCenter();
+                var finalZoom = tempMap.getZoom();
+
+                // Ограничим zoom для адекватного отображения
+                if (finalZoom > 17) {
+                    finalZoom = 17;
+                    tempMap.setView(bounds.getCenter(), 17);
+                } else if (finalZoom < 1) {
+                    finalZoom = 1;
+                    tempMap.setView(bounds.getCenter(), 1);
+                } else {
+                    tempMap.setView(finalCenter, finalZoom);
+                }
+
+                // Пересчитываем центр и координаты
+                var clon = tempMap.getCenter().lng;
+                var clat = tempMap.getCenter().lat;
+
+                var overviewMapUrl = 'https://static-maps.yandex.ru/1.x/?ll=' + clon.toFixed(6) + ',' + clat.toFixed(6) + '&z=' + finalZoom + '&size=356,356&l=map';
+
+                var overlayHtml = '';
+                cameras.forEach(function(c, idx) {
+                    var pt = tempMap.latLngToContainerPoint([c.lat, c.lon]);
+                    // Отрисовываем красивый маркер с азимутом и номером
+                    overlayHtml += `
+                        <div class="map-snapshot-overlay" style="position: absolute; left: ${pt.x}px; top: ${pt.y}px; transform: none; width: 0; height: 0; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+                            <div class="mini-camera-sector ${c.ownerType}" style="transform: rotate(${c.direction}deg); scale: 0.85;"></div>
+                            <div class="mini-camera-marker ${c.ownerType}">${idx+1}</div>
+                        </div>
+                    `;
+                });
+
+                // Очищаем временную карту
+                tempMap.remove();
+                if (tempDiv.parentNode) {
+                    tempDiv.parentNode.removeChild(tempDiv);
+                }
+
+                html += `
+                    <div class="print-overview-card" style="page-break-inside: avoid; margin-bottom: 20px; border: 1.5px solid #2e7d32; border-radius: 6px; padding: 10px; background: #ffffff;">
+                        <div class="print-camera-title" style="border-bottom: 2px solid #2e7d32; padding-bottom: 4px; margin-bottom: 8px;">🗺️ Общая карта расположения всех камер</div>
+                        <div class="print-overview-map-container" style="width: 356px; height: 356px; border: 1px solid #ddd; border-radius: 4px; overflow: hidden; position: relative; background: #f5f5f5; margin: 0 auto;">
+                            <img src="${overviewMapUrl}" class="map-snapshot-img" style="width: 356px; height: 356px; display: block;" alt="Общая карта">
+                            ${overlayHtml}
+                        </div>
+                        <div style="font-size: 9px; color: #555; margin-top: 6px; line-height: 1.35; font-family: sans-serif; display: grid; grid-template-columns: 1fr; gap: 4px; background: #fafafa; padding: 6px; border-radius: 4px; border: 1px solid #eee;">
+                            <div>
+                                <b>Условные обозначения:</b>
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                <span style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#43a047; border-radius:50%; margin-right:4px;"></span>Муниципальные</span>
+                                <span style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#fb8c00; border-radius:50%; margin-right:4px;"></span>Коммерческие</span>
+                                <span style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#1e88e5; border-radius:50%; margin-right:4px;"></span>Частные</span>
+                            </div>
+                            <div style="color: #666; font-style: italic;">
+                                * Направление светового луча показывает азимут обзора камеры соответствующего типа
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            cameras.forEach(function(c, idx) {
+                var ownerText = c.ownerType === 'particular' ? 'Частное лицо' :
+                                c.ownerType === 'commercial' ? 'Бизнес' : 'Муниципальная';
+
+                var photoUrl = c.photo || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%23bbb' stroke-width='1.5'><rect x='3' y='3' width='18' height='18' rx='2' ry='2'></rect><circle cx='8.5' cy='8.5' r='1.5'></circle><polyline points='21 15 16 10 5 21'></polyline></svg>";
+
+                var yandexMapUrl = 'https://static-maps.yandex.ru/1.x/?ll=' + c.lon.toFixed(6) + ',' + c.lat.toFixed(6) + '&z=17&size=300,300&l=map';
+
+                html += `
+                    <div class="print-camera-item">
+                        <div class="print-camera-title">Камера #${idx+1} [${ownerText}]</div>
+                        
+                        <div class="print-camera-details">
+                            <div>
+                                <div class="print-detail-line"><b>Координаты:</b> <a href="https://yandex.ru/maps/?text=${c.lat}%2C${c.lon}" target="_blank" rel="noopener noreferrer" style="font-family: monospace; color: #1e88e5; text-decoration: underline;">${c.lat.toFixed(6)}, ${c.lon.toFixed(6)}</a></div>
+                                <div class="print-detail-line"><b>Адрес:</b> ${c.address || '—'}</div>
+                                ${c.landmark ? `<div class="print-detail-line"><b>Ориентир:</b> ${c.landmark}</div>` : ''}
+                            </div>
+                            <div>
+                                ${c.ownerName || c.ownerContact ? `<div class="print-detail-line"><b>Контакты:</b> ${c.ownerName || ''} ${c.ownerContact ? '('+c.ownerContact+')' : ''}</div>` : ''}
+                                ${c.description ? `<div class="print-detail-line"><b>Режим/Прим:</b> ${c.description}</div>` : ''}
+                            </div>
+                        </div>
+
+                        <div class="print-media-grid">
+                            <div class="print-media-box">
+                                <span class="print-media-label">Фото</span>
+                                <img class="print-media-img" src="${photoUrl}" alt="Фото">
+                            </div>
+                            <div class="print-media-box">
+                                <span class="print-media-label">Карта</span>
+                                <div class="map-snapshot-box" style="width: 100%; height: 100%;">
+                                    <img class="map-snapshot-img" src="${yandexMapUrl}" alt="Карта">
+                                    <div class="map-snapshot-overlay">
+                                        <div class="mini-camera-sector ${c.ownerType}" style="transform: rotate(${c.direction}deg); scale: 0.9;"></div>
+                                        <div class="mini-camera-marker ${c.ownerType}">${idx+1}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            printView.innerHTML = html;
+            
+            // Показываем модальное оверлей-окно на экран
+            wrapper.style.display = 'flex';
+        }
+
+        // Импорт списка камер
+        function importData(input) {
+            if (input.files && input.files[0]) {
+                var file = input.files[0];
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        var imported = JSON.parse(e.target.result);
+                        if (!Array.isArray(imported)) {
+                            alert("Неверный формат бэкапа!");
+                            return;
+                        }
+                        
+                        // Простая валидация полей
+                        var isValid = imported.every(function(item) {
+                            return item.lat !== undefined && item.lon !== undefined && item.address !== undefined;
+                        });
+                        
+                        if (!isValid) {
+                            alert("Файл содержит некорректные записи камер!");
+                            return;
+                        }
+
+                        if (confirm("Вы хотите ОБЪЕДИНИТЬ импортированные камеры с текущими (" + imported.length + " шт.)?\nНажмите Отмена для полной замены списка.")) {
+                            var cameras = getCameras();
+                            // Объединяем, отсекая дубликаты по id
+                            var merged = [...cameras];
+                            imported.forEach(function(imp) {
+                                if (!merged.some(m => m.id === imp.id)) {
+                                    merged.push(imp);
+                                }
+                            });
+                            setCameras(merged);
+                        } else {
+                            setCameras(imported);
+                        }
+
+                        renderAll();
+                        alert("Камеры успешно загружены!");
+                    } catch(err) {
+                        alert("Ошибка чтения JSON: " + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Посылка обновлений текста анкеты в родительское окно index.html
+        function sendUpdateToParent() {
+            var cameras = getCameras();
+            var payload = [
+                { isHeader: true, value: "СПИСОК КАМЕР" }
+            ];
+
+            if (cameras.length === 0) {
+                payload.push({ value: "Камеры не зафиксированы." });
+            } else {
+                cameras.forEach(function(c, i) {
+                    var ownerText = c.ownerType === 'particular' ? 'Частное лицо' :
+                                    c.ownerType === 'commercial' ? 'Организация' : 'Городская';
+                    
+                    var addrStr = c.address || "";
+                    if (c.landmark) {
+                        addrStr += (addrStr ? " — " : "") + c.landmark;
+                    }
+                    if (!addrStr) {
+                        addrStr = "без адреса";
+                    }
+
+                    var info = "Камера #" + (i+1) + ": 📍" + addrStr + "\n" +
+                               "<a href=\"https://yandex.ru/maps/?text=" + c.lat + "," + c.lon + "\" target=\"_blank\" style=\"color: #2196f3; text-decoration: underline;\">" + c.lat.toFixed(6) + ", " + c.lon.toFixed(6) + "</a>\n" +
+                               "🏢 Владелец: " + ownerText + " (" + (c.ownerName || 'не указан') + ")\n" +
+                               "📞 Контакты: " + (c.ownerContact || 'нет данных');
+                    if (c.description) {
+                        info += "\n📝 Доп. информация: " + c.description;
+                    }
+                    payload.push({ label: "", value: info });
+                });
+            }
+
+            // Отправляем наверх в index.html
+            window.parent.postMessage({ type: 'survey_update', source: 'kamery', payload: payload }, '*');
+
+            // Подстройка высоты iframe
+            setTimeout(function() {
+                var height = document.documentElement.offsetHeight || document.body.scrollHeight;
+                window.parent.postMessage({ type: 'set_height', height: height }, '*');
+            }, 100);
+        }
+
+        function sendHeight() {
+            setTimeout(function() {
+                var height = document.documentElement.scrollHeight || document.body.scrollHeight || document.documentElement.offsetHeight;
+                window.parent.postMessage({ type: 'set_height', height: height }, '*');
+            }, 50);
+        }
+    </script>
+</body>
+</html>

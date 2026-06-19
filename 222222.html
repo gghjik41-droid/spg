@@ -415,16 +415,7 @@
         });
     }
 
-    document.addEventListener('mousemove', function(e) {
-        var targetField = e.target.closest('.q-field[data-index]');
-        if (targetField) {
-            var idx = targetField.getAttribute('data-index');
-            if (idx !== null && idx !== lastSentIndex) {
-                lastSentIndex = idx;
-                window.parent.postMessage({ type: 'sync_scroll', source: SOURCE_ID, index: idx }, '*');
-            }
-        }
-    });
+
 
     window.onload = function() {
         loadLocal(); 

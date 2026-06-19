@@ -37,6 +37,7 @@
         <button class="nav-btn" onclick="openSurvey('molitva.html', this)">МОЛИТВА</button>
         <button class="nav-btn" onclick="openSurvey('pamyatki.html', this)">ПАМЯТКИ</button>
         <button class="nav-btn" onclick="openSurvey('opros.html', this)">ОПРОС</button>
+        <button class="nav-btn" onclick="openSurvey('kamery.html', this)">КАМЕРЫ</button>
         <!-- <button class="nav-btn" onclick="openSurvey('222222.html', this)">222222</button> -->
     </div>
 
@@ -54,20 +55,25 @@
     </div>
 
     <div class="result-side">
-        <button class="btn-copy" id="copy-btn" onclick="copyText()">
-            <span>Скопировать результат</span>
+        <div class="result-buttons-container" id="copy-btn-container">
+            <button class="btn-action btn-copy-action" id="copy-btn" onclick="copyText()">
+                <span>Скопировать</span>
+            </button>
+            <button class="btn-action btn-share-action" id="share-btn" onclick="shareText()">
+                <span>Поделиться</span>
+            </button>
             <span id="save-status">Обновлено: --:--:--</span>
-        </button>
+        </div>
         <div id="output">Результат опроса появится здесь...</div>
     </div>
 </div>
 
 <script>
     // --- КОНСТАНТЫ ---
-    var APP_VERSION = 45;  // Версия приложения - менять только здесь!
+    var APP_VERSION = 46;  // Версия приложения - менять только здесь!
 
     // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
-    var ORDER = ['npcr', 'molitva', 'pamyatki', 'opros', '222222'];
+    var ORDER = ['npcr', 'molitva', 'pamyatki', 'opros', 'kamery', '222222'];
     var globalZData = localStorage.getItem('pso_z_main') || "";
     var globalCallsignData = localStorage.getItem('pso_global_callsign_data') || ""; 
     var globalFields = JSON.parse(localStorage.getItem('pso_global_fields') || "{}"); 
@@ -191,7 +197,7 @@
             updateFinalOutput();
             // Показать блок результата (по умолчанию)
             var resultSide = document.querySelector('.result-side');
-            var btnCopy = document.getElementById('copy-btn');
+            var btnCopy = document.getElementById('copy-btn-container');
             if (resultSide) resultSide.style.display = 'block';
             if (btnCopy) btnCopy.style.display = 'flex';
             // Скрываем после прогрузки фрейма
@@ -272,20 +278,7 @@
             if (event.data.source === currentSource) updateFinalOutput();
         }
 
-        if (event.data.type === 'sync_scroll') {
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(function() {
-                var targetId = 'row-' + event.data.source + '-' + event.data.index;
-                var targetRow = document.getElementById(targetId);
-                var outputBox = document.getElementById('output');
-                if (targetRow && outputBox) {
-                    document.querySelectorAll('.res-row').forEach(function(r) { r.classList.remove('active-focus'); });
-                    targetRow.classList.add('active-focus');
-                    var scrollTarget = targetRow.offsetTop - outputBox.offsetTop - (outputBox.clientHeight / 3);
-                    outputBox.scrollTo({ top: scrollTarget, behavior: 'smooth' });
-                }
-            }, 100);
-        }
+
 
         if (event.data.type === 'sync_globals') {
             if (globalCallsignData !== event.data.value) {
@@ -313,14 +306,14 @@
 
         if (event.data.type === 'hide_result') {
             var resultSide = document.querySelector('.result-side');
-            var btnCopy = document.getElementById('copy-btn');
+            var btnCopy = document.getElementById('copy-btn-container');
             if (resultSide) resultSide.style.display = event.data.hide ? 'none' : 'block';
             if (btnCopy) btnCopy.style.display = event.data.hide ? 'none' : 'flex';
         }
 
         if (event.data.type === 'show_result') {
             var resultSide = document.querySelector('.result-side');
-            var btnCopy = document.getElementById('copy-btn');
+            var btnCopy = document.getElementById('copy-btn-container');
             if (resultSide) resultSide.style.display = 'block';
             if (btnCopy) btnCopy.style.display = 'flex';
         }
@@ -340,6 +333,18 @@
                 var tempNode = node.cloneNode(true);
                 var labels = tempNode.querySelectorAll('.res-label');
                 labels.forEach(function(l) { l.style.textTransform = 'none'; });
+                
+                // Преобразуем ссылки <a> в формат для мессенджеров: текст, (ссылка)
+                var anchors = tempNode.querySelectorAll('a');
+                anchors.forEach(function(a) {
+                    var href = a.getAttribute('href');
+                    var text = a.innerText;
+                    if (href) {
+                        var textNode = document.createTextNode(text + ', (' + href + ')');
+                        a.parentNode.replaceChild(textNode, a);
+                    }
+                });
+
                 finalString += tempNode.innerText.trim() + "\n";
             }
         });
@@ -385,8 +390,70 @@
             btn.style.backgroundColor = "#00c853";
             setTimeout(function() { 
                 btn.innerHTML = oldContent; 
-                btn.style.backgroundColor = "#1976d2"; 
+                btn.style.backgroundColor = "#278dda"; 
             }, 1200);
+        }
+    }
+
+    /**
+     * Поделиться результатом (Web Share API).
+     */
+    async function shareText() {
+        var out = document.getElementById('output');
+        if (!out || out.innerText.indexOf('Результат опроса') === 0) return;
+
+        var finalString = "";
+        var elements = out.childNodes;
+        elements.forEach(function(node) {
+            if (node.nodeType === 1) { 
+                var tempNode = node.cloneNode(true);
+                var labels = tempNode.querySelectorAll('.res-label');
+                labels.forEach(function(l) { l.style.textTransform = 'none'; });
+                
+                // Преобразуем ссылки <a> в формат для мессенджеров: текст, (ссылка)
+                var anchors = tempNode.querySelectorAll('a');
+                anchors.forEach(function(a) {
+                    var href = a.getAttribute('href');
+                    var text = a.innerText;
+                    if (href) {
+                        var textNode = document.createTextNode(text + ', (' + href + ')');
+                        a.parentNode.replaceChild(textNode, a);
+                    }
+                });
+
+                finalString += tempNode.innerText.trim() + "\n";
+            }
+        });
+
+        var textToShare = finalString.trim();
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'Результат опроса',
+                    text: textToShare
+                });
+                return;
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.log('Share API не сработал:', err);
+                } else {
+                    return;
+                }
+            }
+        }
+
+        // Fallback: Copy to clipboard and warn/alert
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(textToShare);
+                alert("Поделиться недоступно в этом браузере. Результат скопирован.");
+            } else {
+                fallbackCopy(textToShare);
+                alert("Поделиться недоступно в этом браузере. Результат скопирован.");
+            }
+        } catch (copyErr) {
+            alert("Не удалось поделиться или скопировать результат.");
         }
     }
 
@@ -651,6 +718,7 @@
             './molitva.html',
             './pamyatki.html',
             './opros.html',
+            './kamery.html',
             './common.css',
             './index.css',
             './panzoom.min.js',

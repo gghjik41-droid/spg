@@ -1,0 +1,14 @@
+{
+  "name": "la-spg",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 3000",
+    "build": "vite build && cp -r \"топо\" manifest.json sw.js favicon.png vkicon.png panzoom.min.js version.json dist/ 2>/dev/null || true",
+    "lint": "echo 'No linter required for this static PWA app'",
+    "preview": "vite preview --port 3000"
+  },
+  "devDependencies": {
+    "vite": "^6.2.3"
+  }
+}

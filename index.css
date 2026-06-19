@@ -43,12 +43,11 @@
 
 /* БЛОКИРОВКА ГОРИЗОНТАЛЬНОГО СКРОЛЛА И ЗУМА */
 html {
-    /* Запрещаем прокрутку вбок на корню */
-    overflow-x: hidden;
     /* Запрещаем "резиновый" отскок (bounce эффект) в веб-приложении */
     overscroll-behavior-x: none;
     width: 100%;
-    height: 100%;
+    height: auto;
+    min-height: 100%;
 }
 
 /* Применяем правила ко всем элементам для предотвращения распирания */
@@ -65,8 +64,6 @@ body {
     min-height: 100vh; 
     display: flex;
     flex-direction: column;
-    overflow-y: auto; 
-    overflow-x: hidden; 
     touch-action: manipulation; 
     position: relative;
     width: 100%;
@@ -183,33 +180,70 @@ body {
 }
 
 .btn-ok { margin-top: 6px; background: #4caf50; color: white; border: none; border-radius: 4px; padding: 10px; width: 100%; cursor: pointer; font-weight: bold; }
-#survey-frame { width: 100%; height: auto; min-height: 300px; border: none; display: block; overflow: hidden !important; margin-top: 140px; }
+#survey-frame { width: 100%; height: auto; min-height: 300px; border: none; display: block; margin-top: 140px; }
 
 /* ВЫДАЧА РЕЗУЛЬТАТА */
-.btn-copy { 
-    background-color: #278dda; 
-    color: white;
-    border: none; 
-    padding: 12px 15px; 
-    border-radius: 4px; 
-    font-weight: bold;
-    cursor: pointer; 
-    text-transform: uppercase;
+.result-buttons-container {
     position: fixed; 
     top: calc(48px + env(safe-area-inset-top, 0px)); 
     right: 10px; 
     width: calc(45% - 10px); 
     z-index: 1001; 
+    display: flex; 
+    gap: 8px;
+    align-items: stretch;
+}
+
+.btn-action { 
+    flex: 1;
+    background-color: #278dda; 
+    color: white;
+    border: none; 
+    padding: 8px 10px; 
+    border-radius: 4px; 
+    font-weight: bold;
+    cursor: pointer; 
+    text-transform: uppercase;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
     display: flex; 
-    justify-content: space-between; 
+    justify-content: center; 
     align-items: center; 
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-action:hover {
+    background-color: #1e70b0;
+}
+
+.btn-action:active {
+    transform: scale(0.98);
+}
+
+.btn-share-action {
+    background-color: #2e7d32;
+}
+
+.btn-share-action:hover {
+    background-color: #1b5e20;
+}
+
+#save-status {
+    position: absolute;
+    bottom: -16px;
+    right: 4px;
+    font-size: 10px;
+    color: #78909c;
+    font-weight: 500;
+    text-transform: none;
+    pointer-events: none;
 }
 
 #output { 
     width: calc(45% - 10px); 
     position: fixed;
-    top: calc(95px + env(safe-area-inset-top, 0px)); 
+    top: calc(83px + env(safe-area-inset-top, 0px)); 
     right: 10px;
     bottom: 5px; 
     height: auto; 
@@ -278,11 +312,13 @@ body {
 
     #survey-frame { margin-top: 0 !important; } 
 
-    .btn-copy { 
+    .result-buttons-container { 
         position: static; 
         width: 100%; 
-        margin-bottom: 8px; 
+        margin-bottom: 6px; 
         box-sizing: border-box; 
+        display: flex;
+        gap: 8px;
     } 
 
     #output { 

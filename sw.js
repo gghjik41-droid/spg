@@ -1,5 +1,5 @@
 // Меняй это число при каждом обновлении, чтобы сбросить кэш
-const CACHE_VERSION = 38;
+const CACHE_VERSION = 40;
 const CACHE_NAME = 'pso-v' + CACHE_VERSION;
 
 // Список файлов для оффлайн-режима
@@ -10,6 +10,7 @@ const filesToCache = [
   './molitva.html',
   './pamyatki.html',
   './opros.html',
+  './kamery.html',
   './common.css',
   './index.css',
   './panzoom.min.js',
@@ -88,17 +89,37 @@ function shouldCacheDynamically(url) {
   return DYNAMIC_CACHE_PATTERNS.some(pattern => pattern.test(url));
 }
 
-// 3. Стратегия "Network First" (Сначала сеть, потом кэш)
+// Функция для выполнения запросов с таймаутом (предотвращает зависания при плохой связи - Lie-Fi)
+function fetchWithTimeout(request, timeoutMs = 2500) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error('Network timeout (Lie-Fi)'));
+    }, timeoutMs);
+
+    fetch(request).then(
+      (response) => {
+        clearTimeout(timer);
+        resolve(response);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
+// 3. Стратегии кэширования с защитой от слабого сигнала (Lie-Fi)
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Для навигационных запросов - сначала сеть
+  // Для навигационных запросов - Сначала сеть с быстрым таймаутом (2.5сек)
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
+      fetchWithTimeout(event.request, 2500)
         .then((networkResponse) => {
-          // Сеть работает - обновляем кэш
+          // Сеть работает и вернула валидный ответ - обновляем кэш
           if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -108,13 +129,13 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         })
         .catch(() => {
-          // Сеть недоступна - пробуем кэш
+          // Сеть лежит или отвечает критически медленно - берем из кэша
           return caches.match(event.request).then((cachedResponse) => {
             if (cachedResponse) {
-              console.log('Офлайн, отдали из кэша:', event.request.url);
+              console.log('Слабая сеть/Офлайн: отдали страницу из кэша:', event.request.url);
               return cachedResponse;
             }
-            // Нет даже кэша - показываем ошибку или главную
+            // Нет даже кэша - отдаем сохраненный index.html
             return caches.match('./index.html');
           });
         })
@@ -122,40 +143,38 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Для изображений из папки топо/ - Network First (сначала сеть, потом кэш)
-  // Стратегия: отдаём из сети сразу, параллельно сохраняем в кэш
+  // Для изображений из папки топо/ - Cache First (Сначала кэш, если нет - сеть)
+  // Топографические знаки статичны, их нет смысла качать заново при слабой сети
   if (shouldCacheDynamically(url.pathname)) {
     event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          // Сеть работает - отдаём ответ и параллельно сохраняем в кэш
-          if (networkResponse && networkResponse.status === 200) {
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
-              console.log('Топознак сохранён в кэш:', url.pathname);
-            });
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          // Сеть недоступна - пробуем кэш
-          return caches.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) {
-              console.log('Топознак из кэша (офлайн):', url.pathname);
-              return cachedResponse;
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          console.log('Топознак загружен мгновенно из кэша:', url.pathname);
+          return cachedResponse;
+        }
+        // Нет в кэше - грузим из сети и сохраняем
+        return fetch(event.request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              const responseToCache = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(event.request, responseToCache);
+                console.log('Топознак успешно закэширован:', url.pathname);
+              });
             }
-            // Нет даже кэша - возвращаем пустой ответ
+            return networkResponse;
+          })
+          .catch(() => {
             return new Response('', { status: 404, statusText: 'Not Found' });
           });
-        })
+      })
     );
     return;
   }
 
-  // Для остальных запросов - используем кэш если нет сети
+  // Для остальных запросов - сеть с таймаутом 2 секунды, иначе кэш
   event.respondWith(
-    fetch(event.request)
+    fetchWithTimeout(event.request, 2000)
       .then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
           const responseToCache = networkResponse.clone();
@@ -165,6 +184,9 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() => {
+        console.log('Используем кэш для статики (таймаут сети):', url.pathname);
+        return caches.match(event.request);
+      })
   );
 });

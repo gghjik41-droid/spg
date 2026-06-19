@@ -9,7 +9,38 @@
 </head>
 <body oninput="syncEverything()">
 
-    <!-- <h2>Карточка группы НА ПСР</h2> -->
+    <!-- ВЫБОР ИНФОРГА -->
+    <div class="section-block open" id="section-inforg">
+        <div class="section-header" onclick="document.getElementById('inforg-select').focus()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+            <div style="flex: 1; min-width: 0; display: flex; align-items: center;" onclick="event.stopPropagation()">
+                <select id="inforg-select" style="border: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; background: transparent; color: #2e7d32; cursor: pointer; height: 16px; line-height: 16px; margin: 0; outline: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; padding-right: 0; width: auto; max-width: 100%; text-overflow: ellipsis; white-space: nowrap;" onchange="onInforgChange()" onfocus="rotateInforgArrow(true)" onblur="rotateInforgArrow(false)">
+                    <option value="" style="color: #666; font-weight: normal; background: #fff;">ИНФОРГ ПОИСКА</option>
+                    <option value="Fox" style="color: #333; font-weight: normal; background: #fff;">Фокс (Олеся)</option>
+                    <option value="Medici" style="color: #333; font-weight: normal; background: #fff;">Медичи (Анна)</option>
+                    <option value="Demon" style="color: #333; font-weight: normal; background: #fff;">Демон (Юлия)</option>
+                    <option value="Fora" style="color: #333; font-weight: normal; background: #fff;">Фора (Ольга)</option>
+                    <option value="Chrysanthemum" style="color: #333; font-weight: normal; background: #fff;">Хризантема (Кристина)</option>
+                    <option value="Africa" style="color: #333; font-weight: normal; background: #fff;">Африка (Юлия)</option>
+                    <option value="Ganesha" style="color: #333; font-weight: normal; background: #fff;">Ганеша (Екатерина)</option>
+                    <option value="Mint" style="color: #333; font-weight: normal; background: #fff;">Мята (Екатерина)</option>
+                    <option value="Yamaha" style="color: #333; font-weight: normal; background: #fff;">Ямаха (Ольга)</option>
+                    <option value="Volga" style="color: #333; font-weight: normal; background: #fff;">Волга (Ольга)</option>
+                    <option value="Speed" style="color: #333; font-weight: normal; background: #fff;">Скорость (Анна)</option>
+                    <option value="Medeya" style="color: #333; font-weight: normal; background: #fff;">Медея (Ксения)</option>
+                </select>
+            </div>
+            
+            <div id="inforg-info" style="display: none; align-items: center; gap: 12px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #2e7d32; margin: 0 5px 0 auto; line-height: 16px;" onclick="event.stopPropagation()">
+                <span id="inforg-name" style="display: none;"></span>
+                <a id="inforg-phone" href="" style="color: #2e7d32; text-decoration: none; border-bottom: 2px dashed #2e7d32; white-space: nowrap; font-size: 14px; letter-spacing: 0.5px;"></a>
+                <a id="inforg-vk" href="" target="_blank" style="display: inline-flex; align-items: center;" title="Профиль ВКонтакте">
+                    <img src="vkicon.png" style="width: 18px; height: 18px; object-fit: contain; display: block;" alt="VK">
+                </a>
+            </div>
+            
+            <span id="inforg-toggle" class="section-toggle" style="transform: rotate(45deg);"></span>
+        </div>
+    </div>
 
     <!-- ШТАБ -->
     <div class="section-block open" id="section-staff">
@@ -20,11 +51,36 @@
         <div class="section-content">
             <div class="field-group">
                 <label>Координаты штаба:</label>
-                <div class="field-row">
+                <div class="field-row" style="position: relative; overflow: visible !important;">
+                    <button type="button" onclick="event.stopPropagation(); getCurrentGPS()" id="gps-btn" title="Определить мои координаты" style="position: absolute; left: 0; top: 0; bottom: 0; width: 36px; border: none; background: transparent; cursor: pointer; color: #2e7d32; display: flex; align-items: center; justify-content: center; padding: 0; outline: none; border-right: 1px solid #eee; z-index: 10;">
+                        <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor; transform: rotate(45deg); display: block;">
+                            <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+                        </svg>
+                    </button>
                     <input type="text" id="f_staff_lat" class="q-field field-row-input" 
-                           placeholder="54.000000">
+                           placeholder="54.000000" style="padding-left: 40px; border-right: 1px solid #eee !important;" oninput="validateCoordinateInput(this)" onpaste="handleCoordinatePaste(event)">
                     <input type="text" id="f_staff_lon" class="q-field field-row-input" 
-                           placeholder="082.000000">
+                           placeholder="082.000000" style="padding-right: 76px;" oninput="validateCoordinateInput(this)" onpaste="handleCoordinatePaste(event)">
+                    
+                    <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 72px; display: flex; align-items: center; border-left: 1px solid #eee; z-index: 10; background: #fafafa;">
+                        <button type="button" onclick="event.stopPropagation(); copyCoordinates()" id="copy-btn" title="Скопировать координаты" style="width: 36px; height: 100%; border: none; background: transparent; cursor: pointer; color: #2e7d32; display: flex; align-items: center; justify-content: center; padding: 0; outline: none; border-right: 1px solid #eee;">
+                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor; display: block;">
+                                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                            </svg>
+                        </button>
+                        <button type="button" onclick="event.stopPropagation(); toggleMapMenu(event)" id="map-btn" title="Открыть в картах" style="width: 36px; height: 100%; border: none; background: transparent; cursor: pointer; color: #2e7d32; display: flex; align-items: center; justify-content: center; padding: 0; outline: none;">
+                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor; display: block;">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div id="map-menu" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 180px; overflow: hidden; font-family: 'Segoe UI', sans-serif;">
+                        <a id="link-yandex-map" href="#" target="_blank" style="display: block; padding: 10px 12px; color: #333; text-decoration: none; font-size: 14px; border-bottom: 1px solid #eee; transition: background 0.2s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='transparent'">Яндекс Карты</a>
+                        <a id="link-gurumaps" href="#" target="_blank" style="display: block; padding: 10px 12px; color: #333; text-decoration: none; font-size: 14px; border-bottom: 1px solid #eee; transition: background 0.2s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='transparent'">Guru Maps</a>
+                        <a id="link-google-map" href="#" target="_blank" style="display: block; padding: 10px 12px; color: #333; text-decoration: none; font-size: 14px; border-bottom: 1px solid #eee; transition: background 0.2s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='transparent'">Google Maps</a>
+                        <a id="link-2gis" href="#" target="_blank" style="display: block; padding: 10px 12px; color: #333; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='transparent'">2ГИС</a>
+                    </div>
                 </div>
             </div>
             
@@ -97,11 +153,323 @@
     <a class="add-field-btn" onclick="addTask()">[+] ДОБАВИТЬ ЗАДАЧУ</a>
 
 <script>
+    function rotateInforgArrow(up) {
+        var toggle = document.getElementById('inforg-toggle');
+        if (toggle) {
+            toggle.style.transform = up ? 'rotate(-135deg)' : 'rotate(45deg)';
+        }
+    }
+
+    function validateCoordinateInput(el) {
+        var val = el.value;
+        // Заменяем запятую на точку
+        val = val.replace(',', '.');
+        // Оставляем только цифры, точку и знак минус
+        val = val.replace(/[^0-9.-]/g, '');
+        
+        // Минус может быть только в самом начале
+        if (val.startsWith('-')) {
+            val = '-' + val.slice(1).replace(/-/g, '');
+        } else {
+            val = val.replace(/-/g, '');
+        }
+        
+        // Оставляем только первую точку
+        var parts = val.split('.');
+        if (parts.length > 2) {
+            val = parts[0] + '.' + parts.slice(1).join('');
+        }
+        
+        // Ограничиваем количество знаков после точки до 6
+        if (val.indexOf('.') !== -1) {
+            var dotIdx = val.indexOf('.');
+            var beforeDot = val.substring(0, dotIdx);
+            var afterDot = val.substring(dotIdx + 1);
+            if (afterDot.length > 6) {
+                afterDot = afterDot.substring(0, 6);
+            }
+            val = beforeDot + '.' + afterDot;
+        }
+        
+        if (el.value !== val) {
+            var selectionStart = el.selectionStart;
+            var lengthDiff = el.value.length - val.length;
+            el.value = val;
+            if (typeof el.setSelectionRange === 'function') {
+                el.setSelectionRange(selectionStart - lengthDiff, selectionStart - lengthDiff);
+            }
+        }
+    }
+
+    function handleCoordinatePaste(event) {
+        var pasteData = '';
+        if (event.clipboardData) {
+            pasteData = event.clipboardData.getData('text');
+        } else if (window.clipboardData) {
+            pasteData = window.clipboardData.getData('Text');
+        }
+        
+        if (!pasteData) return;
+        
+        var cleanPaste = pasteData.trim();
+        // Регулярное выражение для поиска двух чисел (широты и долготы)
+        var regex = /(-?\d+(?:[.,]\d+)?)\s*[\s,;:\/|]+\s*(-?\d+(?:[.,]\d+)?)/;
+        var match = cleanPaste.match(regex);
+        
+        if (match) {
+            event.preventDefault();
+            
+            var lat = match[1].replace(',', '.');
+            var lon = match[2].replace(',', '.');
+            
+            var latInput = document.getElementById('f_staff_lat');
+            var lonInput = document.getElementById('f_staff_lon');
+            
+            if (latInput && lonInput) {
+                latInput.value = lat;
+                lonInput.value = lon;
+                
+                validateCoordinateInput(latInput);
+                validateCoordinateInput(lonInput);
+                
+                if (typeof syncEverything === 'function') {
+                    syncEverything();
+                }
+            }
+        }
+    }
+
+    function copyCoordinates() {
+        var latInput = document.getElementById('f_staff_lat');
+        var lonInput = document.getElementById('f_staff_lon');
+        var lat = latInput ? latInput.value.trim() : '';
+        var lon = lonInput ? lonInput.value.trim() : '';
+        
+        if (!lat || !lon) {
+            alert('Заполните координаты штаба для копирования');
+            return;
+        }
+        
+        var coordsText = lat + ', ' + lon;
+        
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(coordsText).then(function() {
+                showCopySuccess();
+            }, function(err) {
+                fallbackCopy(coordsText);
+            });
+        } else {
+            fallbackCopy(coordsText);
+        }
+    }
+
+    function fallbackCopy(text) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            var successful = document.execCommand('copy');
+            if (successful) {
+                showCopySuccess();
+            } else {
+                alert('Не удалось скопировать координаты');
+            }
+        } catch (err) {
+            alert('Не удалось скопировать координаты');
+        }
+        document.body.removeChild(textarea);
+    }
+
+    function showCopySuccess() {
+        var btn = document.getElementById('copy-btn');
+        if (btn) {
+            var originalColor = btn.style.color || '#2e7d32';
+            btn.style.color = '#ff9800'; // Оранжевый цвет успешного копирования
+            btn.title = 'Скопировано!';
+            var origSvg = btn.innerHTML;
+            btn.innerHTML = '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor; display: block;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+            setTimeout(function() {
+                btn.style.color = originalColor;
+                btn.title = 'Скопировать координаты';
+                btn.innerHTML = origSvg;
+            }, 1500);
+        }
+    }
+
+    function toggleMapMenu(event) {
+        if (event) event.stopPropagation();
+        var menu = document.getElementById('map-menu');
+        if (!menu) return;
+        
+        var latInput = document.getElementById('f_staff_lat');
+        var lonInput = document.getElementById('f_staff_lon');
+        var lat = latInput ? latInput.value.trim() : '';
+        var lon = lonInput ? lonInput.value.trim() : '';
+        
+        if (!lat || !lon) {
+            alert('Заполните координаты штаба');
+            return;
+        }
+        
+        document.getElementById('link-yandex-map').href = 'https://yandex.ru/maps/?text=' + lat + ',' + lon;
+        document.getElementById('link-gurumaps').href = 'guru://show?place=' + lat + ',' + lon + '&zoom=16';
+        document.getElementById('link-google-map').href = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lon;
+        document.getElementById('link-2gis').href = 'https://2gis.ru/search/' + lat + ',' + lon;
+        
+        if (menu.style.display === 'block') {
+            menu.style.display = 'none';
+            document.removeEventListener('click', closeMapMenu);
+        } else {
+            menu.style.display = 'block';
+            setTimeout(function() {
+                document.addEventListener('click', closeMapMenu);
+            }, 0);
+        }
+    }
+
+    function closeMapMenu() {
+        var menu = document.getElementById('map-menu');
+        if (menu) {
+            menu.style.display = 'none';
+        }
+        document.removeEventListener('click', closeMapMenu);
+    }
+
+    function getCurrentGPS() {
+        var latInput = document.getElementById('f_staff_lat');
+        var lonInput = document.getElementById('f_staff_lon');
+        var latVal = latInput ? latInput.value.trim() : '';
+        var lonVal = lonInput ? lonInput.value.trim() : '';
+        
+        if (latVal || lonVal) {
+            if (!confirm('Перезаписать координаты штаба?')) {
+                return;
+            }
+        }
+
+        var btn = document.getElementById('gps-btn');
+        if (!navigator.geolocation) {
+            alert('Ваш браузер не поддерживает геолокацию');
+            return;
+        }
+        
+        if (btn) {
+            btn.style.color = '#ff9800'; // Оранжевый во время поиска
+            btn.style.pointerEvents = 'none';
+            var svg = btn.querySelector('svg');
+            if (svg) {
+                svg.style.transition = 'transform 1s ease-in-out';
+                svg.style.transform = 'rotate(405deg)'; 
+            }
+        }
+        
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                var lat = position.coords.latitude.toFixed(6);
+                var lon = position.coords.longitude.toFixed(6);
+                
+                document.getElementById('f_staff_lat').value = lat;
+                document.getElementById('f_staff_lon').value = lon;
+                
+                if (btn) {
+                    btn.style.color = '#2e7d32'; // Зелёный при успехе
+                    var svg = btn.querySelector('svg');
+                    if (svg) {
+                        svg.style.transition = 'none';
+                        svg.style.transform = 'rotate(45deg)';
+                    }
+                    btn.style.pointerEvents = 'auto';
+                    btn.title = 'Определить мои координаты';
+                }
+                
+                syncEverything();
+            },
+            function(error) {
+                console.error('Ошибка геолокации:', error);
+                var errorMsg = 'Не удалось получить координаты';
+                if (error.code === error.PERMISSION_DENIED) {
+                    errorMsg = 'Доступ к геопозиции отклонен';
+                } else if (error.code === error.POSITION_UNAVAILABLE) {
+                    errorMsg = 'Координаты недоступны';
+                } else if (error.code === error.TIMEOUT) {
+                    errorMsg = 'Превышено время ожидания';
+                }
+                
+                alert(errorMsg);
+                
+                if (btn) {
+                    btn.style.color = '#f44336'; // Красный при ошибке
+                    var svg = btn.querySelector('svg');
+                    if (svg) {
+                        svg.style.transition = 'none';
+                        svg.style.transform = 'rotate(45deg)';
+                    }
+                    btn.style.pointerEvents = 'auto';
+                    btn.title = 'Ошибка: ' + errorMsg;
+                }
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    }
+
+    var INFORG_DATA = {
+        "Fox": { name: "Фокс (Олеся)", phone: "89232466609", vk: "https://vk.com/fox_la54" },
+        "Medici": { name: "Медичи (Анна)", phone: "89636486247", vk: "https://vk.com/medihi" },
+        "Demon": { name: "Демон (Юлия)", phone: "89833224795", vk: "https://vk.com/demon.yulia" },
+        "Fora": { name: "Фора (Ольга)", phone: "89686807032", vk: "https://vk.com/bobkova97" },
+        "Chrysanthemum": { name: "Хризантема (Кристина)", phone: "89951299871", vk: "https://vk.com/markesha30" },
+        "Africa": { name: "Африка (Юлия)", phone: "89133767788", vk: "https://vk.com/yulastimukas" },
+        "Ganesha": { name: "Ганеша (Екатерина)", phone: "89529214656", vk: "https://vk.com/katexinkot" },
+        "Mint": { name: "Мята (Екатерина)", phone: "89952705743", vk: "https://vk.com/id122419949" },
+        "Yamaha": { name: "Ямаха (Ольга)", phone: "89133754988", vk: "https://vk.com/id4102687" },
+        "Volga": { name: "Волга (Ольга)", phone: "89139207066", vk: "https://vk.ru/olyapeters" },
+        "Speed": { name: "Скорость (Анна)", phone: "89039017293", vk: "https://vk.com/id692427276" },
+        "Medeya": { name: "Медея (Ксения)", phone: "89955739039", vk: "https://vk.ru/lucifer0vnaa" }
+    };
+
+    function onInforgChange() {
+        var select = document.getElementById('inforg-select');
+        var infoDiv = document.getElementById('inforg-info');
+        var nameSpan = document.getElementById('inforg-name');
+        var phoneA = document.getElementById('inforg-phone');
+        var vkA = document.getElementById('inforg-vk');
+        
+        if (!select) return;
+        var val = select.value;
+        if (!val) {
+            if (infoDiv) infoDiv.style.display = 'none';
+        } else {
+            var data = INFORG_DATA[val];
+            if (data) {
+                if (nameSpan) nameSpan.textContent = data.name;
+                if (phoneA) {
+                    phoneA.textContent = data.phone;
+                    phoneA.href = 'tel:' + data.phone;
+                }
+                if (vkA) vkA.href = data.vk;
+                if (infoDiv) infoDiv.style.display = 'inline-flex';
+            } else {
+                if (infoDiv) infoDiv.style.display = 'none';
+            }
+        }
+        select.blur();
+        syncEverything();
+        sendHeight();
+    }
+
     var STORAGE_KEY = 'survey_cache_npcr_v2'; 
     var SOURCE_ID = 'npcr'; 
     var taskCounter = 0;
     var db = null;
     var orientImages = []; // Массив ID картинок
+    var lastSentIndex = -1;
 
     // IndexedDB - открытие
     function openDB() {
@@ -662,70 +1030,137 @@
         syncTimer = setTimeout(function() {
             var payload = [];
             
+            // Сброс индексов
+            document.querySelectorAll('.q-field').forEach(function(el) {
+                el.removeAttribute('data-index');
+            });
+            
+            // ИНФОРГ
+            var inforgSelect = document.getElementById('inforg-select');
+            var inforgVal = inforgSelect ? inforgSelect.value : '';
+            if (inforgVal) {
+                var inforgData = INFORG_DATA[inforgVal];
+                if (inforgData) {
+                    payload.push({ label: 'ИНФОРГ', value: inforgData.name + ' ' + inforgData.phone });
+                }
+            }
+            
             // ШТАБ
-            var staffLat = document.getElementById('f_staff_lat').value.trim();
-            var staffLon = document.getElementById('f_staff_lon').value.trim();
+            var staffLatEl = document.getElementById('f_staff_lat');
+            var staffLonEl = document.getElementById('f_staff_lon');
+            var staffLat = staffLatEl ? staffLatEl.value.trim() : '';
+            var staffLon = staffLonEl ? staffLonEl.value.trim() : '';
             var staffCoords = (staffLat && staffLon) ? staffLat + ', ' + staffLon : (staffLat || staffLon);
-            var staffNum = document.getElementById('f_staff_num').value.trim();
-            var staffFreq = document.getElementById('f_staff_freq').value.trim();
-            var staffOrient = document.getElementById('f_staff_orient').value.trim();
-            var staffAzimuth = document.getElementById('f_staff_azimuth').value.trim();
+            var staffNumEl = document.getElementById('f_staff_num');
+            var staffNum = staffNumEl ? staffNumEl.value.trim() : '';
+            var staffFreqEl = document.getElementById('f_staff_freq');
+            var staffFreq = staffFreqEl ? staffFreqEl.value.trim() : '';
+            var staffOrientEl = document.getElementById('f_staff_orient');
+            var staffOrient = staffOrientEl ? staffOrientEl.value.trim() : '';
+            var staffAzimuthEl = document.getElementById('f_staff_azimuth');
+            var staffAzimuth = staffAzimuthEl ? staffAzimuthEl.value.trim() : '';
             
             if (staffCoords || staffNum || staffFreq || staffOrient || staffAzimuth) {
                 payload.push({ label: 'ДАННЫЕ ШТАБА', value: '', isHeader: true });
-                if (staffCoords) payload.push({ label: 'Координаты штаба', value: staffCoords });
-                if (staffNum) payload.push({ label: 'Номер штаба', value: staffNum });
-                if (staffFreq) payload.push({ label: 'Частота связи', value: staffFreq });
+                if (staffCoords) {
+                    payload.push({ label: 'Координаты штаба', value: staffCoords });
+                    var idx = payload.length - 1;
+                    if (staffLatEl) staffLatEl.setAttribute('data-index', idx);
+                    if (staffLonEl) staffLonEl.setAttribute('data-index', idx);
+                }
+                if (staffNum) {
+                    payload.push({ label: 'Номер штаба', value: staffNum });
+                    if (staffNumEl) staffNumEl.setAttribute('data-index', payload.length - 1);
+                }
+                if (staffFreq) {
+                    payload.push({ label: 'Частота связи', value: staffFreq });
+                    if (staffFreqEl) staffFreqEl.setAttribute('data-index', payload.length - 1);
+                }
                 if (staffOrient && staffAzimuth) {
                     payload.push({ label: 'Аварийный азимут', value: staffOrient + ' — ' + staffAzimuth });
+                    var idx = payload.length - 1;
+                    if (staffOrientEl) staffOrientEl.setAttribute('data-index', idx);
+                    if (staffAzimuthEl) staffAzimuthEl.setAttribute('data-index', idx);
                 } else if (staffAzimuth) {
                     payload.push({ label: 'Аварийный азимут', value: staffAzimuth });
+                    if (staffAzimuthEl) staffAzimuthEl.setAttribute('data-index', payload.length - 1);
                 } else if (staffOrient) {
                     payload.push({ label: 'Аварийный азимут', value: staffOrient });
+                    if (staffOrientEl) staffOrientEl.setAttribute('data-index', payload.length - 1);
                 }
             }
             
             // ВВОДНЫЕ ПО ПОИСКУ
-            var infoFio = document.getElementById('f_info_fio').value.trim();
-            var infoHomeName = document.getElementById('f_info_home_name').value.trim();
-            var infoAppearance = document.getElementById('f_info_appearance').value.trim();
+            var infoFioEl = document.getElementById('f_info_fio');
+            var infoFio = infoFioEl ? infoFioEl.value.trim() : '';
+            var infoHomeNameEl = document.getElementById('f_info_home_name');
+            var infoHomeName = infoHomeNameEl ? infoHomeNameEl.value.trim() : '';
+            var infoAppearanceEl = document.getElementById('f_info_appearance');
+            var infoAppearance = infoAppearanceEl ? infoAppearanceEl.value.trim() : '';
             
             if (infoFio || infoHomeName || infoAppearance) {
                 payload.push({ label: 'ВВОДНЫЕ ПО ПОИСКУ', value: '', isHeader: true });
-                if (infoFio) payload.push({ label: 'ФИО БВП', value: infoFio });
-                if (infoHomeName) payload.push({ label: 'Домашнее имя', value: infoHomeName });
-                if (infoAppearance) payload.push({ label: 'Приметы', value: infoAppearance });
+                if (infoFio) {
+                    payload.push({ label: 'ФИО БВП', value: infoFio });
+                    if (infoFioEl) infoFioEl.setAttribute('data-index', payload.length - 1);
+                }
+                if (infoHomeName) {
+                    payload.push({ label: 'Домашнее имя', value: infoHomeName });
+                    if (infoHomeNameEl) infoHomeNameEl.setAttribute('data-index', payload.length - 1);
+                }
+                if (infoAppearance) {
+                    payload.push({ label: 'Приметы', value: infoAppearance });
+                    if (infoAppearanceEl) infoAppearanceEl.setAttribute('data-index', payload.length - 1);
+                }
             }
             
             // ЗАДАЧИ
             document.querySelectorAll('#tasks-container .section-block').forEach(function(taskBlock, idx) {
                 var taskNum = idx + 1;
-                var callsign = taskBlock.querySelector('.task-callsign').value.trim();
-                var desc = taskBlock.querySelector('.task-desc').value.trim();
+                var callsignEl = taskBlock.querySelector('.task-callsign');
+                var callsign = callsignEl ? callsignEl.value.trim() : '';
+                var descEl = taskBlock.querySelector('.task-desc');
+                var desc = descEl ? descEl.value.trim() : '';
                 var membersContainer = taskBlock.querySelector('.members-container');
                 
-                var seniorEl = membersContainer.querySelector('.member-row.senior .member-senior');
+                var seniorEl = membersContainer ? membersContainer.querySelector('.member-row.senior .member-senior') : null;
                 var seniorVal = seniorEl ? seniorEl.value.trim() : '';
                 
                 var members = [];
-                membersContainer.querySelectorAll('.member-row:not(.senior)').forEach(function(row) {
-                    var name = row.querySelector('.member-name').value.trim();
-                    var phone = row.querySelector('.member-phone').value.trim();
-                    if (name || phone) {
-                        members.push({ name: name, phone: phone });
-                    }
-                });
+                if (membersContainer) {
+                    membersContainer.querySelectorAll('.member-row:not(.senior)').forEach(function(row) {
+                        var nameEl = row.querySelector('.member-name');
+                        var name = nameEl ? nameEl.value.trim() : '';
+                        var phoneEl = row.querySelector('.member-phone');
+                        var phone = phoneEl ? phoneEl.value.trim() : '';
+                        if (name || phone) {
+                            members.push({ name: name, phone: phone, nameEl: nameEl, phoneEl: phoneEl });
+                        }
+                    });
+                }
                 
                 if (callsign || desc || seniorVal || members.length > 0) {
                     payload.push({ label: 'ЗАДАЧА ' + taskNum, value: '', isHeader: true });
-                    if (callsign) payload.push({ label: 'Позывной', value: callsign });
-                    if (desc) payload.push({ label: 'Задача', value: desc });
+                    if (callsign) {
+                        payload.push({ label: 'Позывной', value: callsign });
+                        if (callsignEl) callsignEl.setAttribute('data-index', payload.length - 1);
+                    }
+                    if (desc) {
+                        payload.push({ label: 'Задача', value: desc });
+                        if (descEl) descEl.setAttribute('data-index', payload.length - 1);
+                    }
                     if (seniorVal || members.length > 0) {
-                        if (seniorVal) payload.push({ label: '', value: '1. ' + seniorVal });
+                        if (seniorVal) {
+                            payload.push({ label: '', value: '1. ' + seniorVal });
+                            if (seniorEl) seniorEl.setAttribute('data-index', payload.length - 1);
+                        }
                         members.forEach(function(m, i) {
                             var line = (i + 2) + '. ' + m.name;
                             if (m.phone) line += ' ' + m.phone;
                             payload.push({ label: '', value: line });
+                            var currentIdx = payload.length - 1;
+                            if (m.nameEl) m.nameEl.setAttribute('data-index', currentIdx);
+                            if (m.phoneEl) m.phoneEl.setAttribute('data-index', currentIdx);
                         });
                     }
                 }
@@ -752,6 +1187,8 @@
             sendHeight();
         }, 150);
     }
+
+
 
     // Сохранение в localStorage
     function saveLocal() {
@@ -802,7 +1239,8 @@
             },
             tasks: tasks,
             sections: sections,
-            orientImages: orientImages
+            orientImages: orientImages,
+            selectedInforg: document.getElementById('inforg-select') ? document.getElementById('inforg-select').value : ''
         };
         
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -860,6 +1298,15 @@
             var orientBlock = document.getElementById('section-orient');
             if (data.sections && data.sections.orient === false) {
                 orientBlock.classList.remove('open');
+            }
+            
+            // ИНФОРГ
+            if (data.selectedInforg) {
+                var selectEl = document.getElementById('inforg-select');
+                if (selectEl) {
+                    selectEl.value = data.selectedInforg;
+                    onInforgChange();
+                }
             }
             
             // ОРИЕНТИРОВКА
